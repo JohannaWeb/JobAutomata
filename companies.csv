@@ -1,0 +1,101 @@
+name,category,url,careers_url,job_board,applied
+Bluesky,,https://bsky.social,https://bsky.social/about/join,custom,False
+Protocol Labs,,https://protocol.ai,https://protocol.ai/join/,custom,False
+Akash Network,,https://akash.network,https://akash.network/careers,custom,False
+Solana Labs,,https://solana.com,https://jobs.solana.com/,greenhouse,False
+Polygon,,https://polygon.technology,https://jobs.ashbyhq.com/polygon-labs/,greenhouse,False
+Starkware,,https://starkware.co,https://starkware.co/careers/,custom,False
+Thirdweb,,https://thirdweb.com,https://wellfound.com/company/thirdweb-1/jobs,custom,False
+Lens Protocol,,https://lens.xyz,,,False
+ENS (Ethereum Name Service),,https://ens.domains,https://ensdao.org,custom,False
+Safe{Wallet},,https://safe.global,https://safe-labs.jobs.personio.com,custom,False
+Interop,,https://interop.com,https://enterpriseconnect.tradepub.com/c/pubRD.mpl?secure=1&sr=pp&_t=pp:&qf=w_defa5426&ch=ECwebsite,custom,False
+Optimism,,https://optimism.io,https://optimism.io/careers,custom,False
+Arbitrum,,https://arbitrum.io,,,False
+Aleo,,https://aleo.org,https://discord.gg/aleo,custom,False
+Status,,https://status.im,https://status.im/jobs,custom,False
+Zcash,,https://z.cash,https://z.cash/community-hub/?discuss=#tab-5663,custom,False
+Nostr Development,,,,,False
+Cosmos,,https://cosmos.network,https://job-boards.greenhouse.io/cosmoslabs/,greenhouse,False
+Servo,,https://servo.org,,,False
+Ladybird,,https://ladybird.org,,,False
+Igalia,,https://igalia.com,https://igalia.com/jobs,custom,False
+Chromium/Google,,,,,False
+Firefox/Mozilla,,https://mozilla.org,https://mozilla.org/en-US/careers/,custom,False
+Apple WebKit,,https://webkit.org,,,False
+Brave,,https://brave.com,https://brave.com/careers/,greenhouse,False
+Arc,,https://arc.net,https://thebrowser.company/careers/,custom,False
+Zed,,https://zed.dev,https://zed.dev/jobs,custom,False
+Figma,,https://figma.com,https://friends.figma.com/,custom,False
+Tauri,,https://tauri.app,,,False
+Dioxus,,https://dioxuslabs.com,,,False
+Anthropic,,https://anthropic.com,https://www.anthropic.com/careers,custom,False
+OpenAI,,https://openai.com,,,False
+Meta AI,,https://ai.meta.com,https://ai.meta.com/join-us,custom,False
+Google DeepMind,,,,,False
+Stability AI,,https://stability.ai,https://stability.ai/careers,greenhouse,False
+HuggingFace,,https://huggingface.co,https://huggingface.co/join,custom,False
+Together AI,,https://together.ai,https://together.ai/careers,greenhouse,False
+Modal,,https://modal.com,https://modal.com/careers,custom,False
+Replicate,,https://replicate.com,https://replicate.com/about#join-us,custom,False
+Weights & Biases,,https://wandb.ai,https://wandb.ai/careers,custom,False
+Cohere,,https://cohere.com,https://cohere.com/blog/cohere-alephalpha-join-forces,custom,False
+Mistral AI,,https://mistral.ai,https://mistral.ai/careers,lever,False
+Scale AI,,https://scale.com,https://scale.com/careers,custom,False
+Eleven Labs,,https://elevenlabs.io,https://elevenlabs.io/careers,custom,False
+RunwayML,,https://runwayml.com,https://runwayml.com/careers,custom,False
+Jasper,,https://jasper.com,,,False
+Bria,,https://bria.com,http://careers.acrisure.com/us.en,custom,False
+Giza Technologies,,,,,False
+CUDA/NVIDIA,,,,,False
+Cerebras,,https://cerebras.ai,https://cerebras.ai/join-us,custom,False
+Epic Games,,https://epic-games.com,,,False
+Unity Technologies,,,,,False
+Nvidia,,https://nvidia.com,https://nvidianews.nvidia.com/news/nvidia-and-emerald-ai-join-leading-energy-companies-to-pioneer-flexible-ai-factories-as-grid-assets,custom,False
+DICE/EA,,,,,False
+Naughty Dog,,https://naughtydog.com,https://naughtydog.com/careers,custom,False
+Valve,,https://valve.com,,,False
+FromSoftware,,https://fromsoftware.com,,,False
+Bandcamp,,https://bandcamp.ai,,,False
+The Machinery,,,,,False
+Blackthorne Games,,,,,False
+Fly.io,,,,,False
+Replit,,https://replit.com,https://replit.com/signup?goto=%2F%7E%3Fupgrade%3Dpricing_page_signup%26plan%3Dhacker_pro%26period%3Dyearly,custom,False
+Railway,,https://railway.com,https://railway.com/,custom,False
+Render,,https://render.com,https://render.com/docs/cronjobs,custom,False
+DigitalOcean,,https://digitalocean.com,https://digitalocean.com/careers,custom,False
+CoreWeave,,https://coreweave.com,https://coreweave.com/events,custom,False
+Lambda Labs,,https://lambda-labs.com,,,False
+Databricks,,https://databricks.com,https://databricks.com/company/careers,greenhouse,False
+Vercel,,https://vercel.com,https://vercel.com/events,custom,False
+Netlify,,https://netlify.com,https://netlify.com/careers/,greenhouse,False
+Docker,,https://docker.com,https://docker.com/careers/,custom,False
+Canonical,,https://canonical.com,https://ubuntu.com/blog/canonical-joins-the-connectivity-standards-alliance,custom,False
+Red Hat,,https://redhat.com,https://redhat.com/en/jobs,custom,False
+HashiCorp,,https://hashicorp.com,,,False
+CloudFlare,,https://cloudflare.com,https://discord.com/invite/cloudflaredev,custom,False
+Auth0,,https://auth0.com,https://auth0.com/resources/webinars/introducing-auth-for-genai-the-future-of-ai-security,custom,False
+Okta,,https://okta.com,https://support.okta.com/help/s/community?language=en_US,custom,False
+Zoom,,https://zoom.us,https://zoom.us/join,custom,False
+Signal,,https://signal.org,https://signal.org/workworkwork/,custom,False
+Mullvad,,https://mullvad.net,https://www.mullvad.careers/,custom,False
+1Password,,https://1password.com,https://1password.com/careers,custom,False
+Teleport,,https://goteleport.com,https://goteleport.com/community-slack/,custom,False
+Snyk,,https://snyk.io,https://snyk.io/careers/,custom,False
+Wiz,,https://wiz.io,https://wiz.io/careers,greenhouse,False
+Zscaler,,https://zscaler.com,https://zscaler.com/careers,custom,False
+Vanta,,https://vanta.com,https://vanta.com/products/grc,custom,False
+Rubrik,,https://rubrik.com,https://www.rubrik.com/company/careers,custom,False
+Cloudflare,,https://cloudflare.com,https://discord.com/invite/cloudflaredev,custom,False
+Fastly,,https://fastly.com,https://fastly.com/about/careers,custom,False
+Akamai,,https://akamai.com,https://partners.akamai.com/registration/,custom,False
+Cisco,,https://cisco.com,https://careers.cisco.com/global/en/home,custom,False
+Arista Networks,,https://arista.com,,,False
+Juniper Networks,,https://juniper.net,https://careers.hpe.com/juniper,custom,False
+Observability/New Relic,,,,,False
+PagerDuty,,https://pagerduty.com,https://careers.pagerduty.com/home,greenhouse,False
+Datadog,,https://datadoghq.com,https://www.datadoghq.com/product/data-observability/jobs-monitoring/,custom,False
+Honeycomb.io,,https://honeycomb.io,https://honeycombpollinators.slack.com/join/shared_invite/zt-36l4bm56r-HDRSbqbQvjGPeH1VIhMmSw#/shared-invite/email,custom,False
+Linux Foundation,,https://linuxfoundation.org,https://www.linuxfoundation.org/about/join?hsLang=en,custom,False
+Apache Software Foundation,,,,,False
+Cloud Native Computing Foundation,,,,,False

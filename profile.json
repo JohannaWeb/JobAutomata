@@ -1,0 +1,183 @@
+{
+  "name": "Johanna Almeida",
+  "email": "JohannaWebApps@proton.me",
+  "phone": "+351-91-650-2020",
+  "location": "Porto, Portugal",
+  "github_url": "https://github.com/JohannaWeb",
+  "linkedin_url": "https://linkedin.com/in/johannaalmeida",
+  "portfolio_url": "https://juntos.chat",
+  "resume_file": "cv.md",
+  "years_experience": 17,
+  "professional_years": 9,
+
+  "summary": "Systems engineer with 17 years of programming experience. Built complete infrastructure stacks from first principles: browser engines, language models, cryptographic implementations, and decentralized identity systems. Specializes in inference optimization (51x speedup achieved) and GPU kernel design. Core focus: Building sovereign computing infrastructure for communities excluded by mainstream tech consolidation.",
+
+  "core_skills": [
+    "Rust",
+    "Python",
+    "TypeScript",
+    "Java",
+    "GPU Programming (CUDA, Triton, wgpu)",
+    "Systems Architecture",
+    "Cryptography",
+    "Decentralized Protocols (AT Protocol)",
+    "Machine Learning (PyTorch)",
+    "Browser Engines",
+    "Emulator Design",
+    "Distributed Systems"
+  ],
+
+  "technical_expertise": {
+    "systems_and_low_level": [
+      "Browser internals: HTML/CSS parsing, layout engines, rendering",
+      "GPU programming: wgpu, Vulkan, Triton, CUDA",
+      "CPU emulation: MIPS R3000A, instruction sets",
+      "Inference optimization: KV-cache, quantization, latency profiling"
+    ],
+    "machine_learning_and_ai": [
+      "PyTorch internals, gradient computation, optimization dynamics",
+      "Attention architectures, recurrent systems, gating mechanisms",
+      "Language model training from scratch",
+      "Inference pipelines: token generation, batching, sampling",
+      "Novel HybridAttention architecture (51x speedup)"
+    ],
+    "cryptography_and_protocols": [
+      "secp256k1, ES256K, ECDSA",
+      "AT Protocol, ActivityPub, W3C DID",
+      "Trust systems, reputation models, Sybil resistance"
+    ],
+    "infrastructure_and_backend": [
+      "JVM ecosystem: Spring Boot, Quarkus",
+      "Kubernetes, AWS, GCP",
+      "Kafka, Snowflake, PostgreSQL",
+      "Observability: Prometheus, Grafana"
+    ]
+  },
+
+  "recent_projects": [
+    {
+      "name": "Sisyphus: Language Model Training",
+      "technologies": ["PyTorch", "Triton", "CUDA"],
+      "highlights": [
+        "25.6M parameter byte-level language model trained from scratch",
+        "51x inference speedup (5.6 tok/s → 286.6 tok/s)",
+        "Novel HybridAttention architecture",
+        "Ranked #2 on Google for 'Hybrid Attention'",
+        "Hacker News front page"
+      ]
+    },
+    {
+      "name": "Aurora: Browser Engine",
+      "technologies": ["Rust", "wgpu", "CSS Layout"],
+      "highlights": [
+        "Full browser pipeline: parsing → layout → rendering",
+        "Custom HTML parser with no external dependencies",
+        "GPU rendering pipeline",
+        "Glyph atlas-based text rendering",
+        "Recognized by Servo core team"
+      ]
+    },
+    {
+      "name": "Juntos: Decentralized Chat",
+      "technologies": ["TypeScript", "AT Protocol", "WebSockets"],
+      "highlights": [
+        "First real-time decentralized chat on AT Protocol",
+        "DID-based identity + cryptographic key management",
+        "Live at https://juntos.chat",
+        "Built for marginalized communities"
+      ]
+    },
+    {
+      "name": "ProjectFalcon: JVM AT Protocol SDK",
+      "technologies": ["Java 21", "Cryptography", "Distributed Systems"],
+      "highlights": [
+        "First native JVM implementation of AT Protocol",
+        "ES256K cryptography from scratch",
+        "Research contribution: Adversarial Trust Protocol"
+      ]
+    },
+    {
+      "name": "46-Day Intensive Sprint",
+      "technologies": ["Rust", "Python", "TypeScript"],
+      "highlights": [
+        "38 public repositories produced",
+        "Rust-Boy: Game Boy Color emulator",
+        "Chip-8 Emulator: Full instruction set VM",
+        "Rsx: PS1 emulator in Rust",
+        "3 research papers on trust systems"
+      ]
+    }
+  ],
+
+  "focus_areas": [
+    "Rust systems programming",
+    "Decentralized protocols & identity",
+    "Machine learning & inference optimization",
+    "GPU kernel design",
+    "Browser engines & rendering",
+    "Infrastructure for marginalized communities",
+    "Open-source community building"
+  ],
+
+  "company_alignment": {
+    "bluesky": "Co-creator of AT Protocol ecosystem; direct contributor to decentralized social infrastructure",
+    "anthropic": "Inference optimization research, model architecture design, decentralized AI systems",
+    "protocol_labs": "Deep experience with cryptographic protocols and decentralized infrastructure",
+    "solana": "GPU optimization expertise directly applicable to consensus mechanisms",
+    "servo": "Browser engine expertise recognized by Servo core team",
+    "stability_ai": "LLM architecture design and optimization experience",
+    "huggingface": "Active in open-source ML community with published research"
+  },
+
+  "cover_letter_templates": {
+    "default": "As a systems engineer with 17 years of experience building infrastructure from first principles, I'm excited about the opportunity to contribute to {company_name}. My recent work includes:\n\n• Sisyphus: A 25.6M parameter language model with 51x inference speedup through novel HybridAttention architecture\n• Aurora: A browser engine built in Rust with full rendering pipeline\n• Juntos: A decentralized real-time chat platform on AT Protocol, serving marginalized communities\n\nI bring deep expertise in {focus_area}, with a proven track record of shipping production systems and contributing to open-source communities. Interested in discussing how these skills align with your team's goals.",
+
+    "decentralized_web3": "I'm drawn to {company_name}'s mission to build decentralized infrastructure. My recent work includes:\n\n• ProjectFalcon: First native JVM implementation of AT Protocol with ES256K cryptography\n• Juntos: Live decentralized chat platform with DID-based identity\n• Adversarial Trust Protocol: Research publication on fixing EigenTrust bootstrapping\n\nI combine deep systems knowledge (browser engines, emulators, GPU programming) with protocols expertise to build sovereign computing stacks. My philosophy centers on infrastructure for communities excluded by mainstream tech consolidation.",
+
+    "machine_learning": "My expertise in {focus_area} includes:\n\n• Sisyphus: 25.6M parameter LLM with custom Triton kernels achieving 51x inference speedup\n• Novel HybridAttention architecture reducing complexity from O(n²) to O(n·W + n·D)\n• PyTorch internals, gradient computation, optimization dynamics\n• Trained on RTX 4060 Ti (8GB) to 2.15 perplexity\n\nI'm interested in {company_name}'s work on {company_focus} and would love to discuss how inference optimization and novel architectures can drive your research forward.",
+
+    "systems_infrastructure": "With 9+ years professional experience in systems architecture and infrastructure, I bring:\n\n• Browser engine development (parsing, layout, rendering pipelines)\n• GPU programming (wgpu, Vulkan, CUDA, Triton)\n• Production Kubernetes deployments at scale\n• Zero-downtime database migrations\n• Infrastructure for decentralized systems (AT Protocol, cryptographic protocols)\n\nMy recent 46-day sprint produced 38 public repositories, demonstrating systems-level thinking and output velocity. I'm excited to apply these skills to {company_name}'s infrastructure challenges."
+  },
+
+  "achievement_highlights": [
+    "Hacker News front page (Hybrid Attention research)",
+    "Google ranking #2 for 'Hybrid Attention'",
+    "Recognized by Servo core team for browser engine work",
+    "38 public repositories in 46-day intensive sprint",
+    "3 published research papers on trust systems and AI alignment",
+    "Live production platform (juntos.chat) serving 1000+ users",
+    "51x inference speedup through novel architecture design"
+  ],
+
+  "education": {
+    "degree": "Bachelor of Science in Software Engineering",
+    "institution": "Instituto Superior de Engenharia do Porto (ISEP)",
+    "year": 2017
+  },
+
+  "languages": {
+    "portuguese": "Native",
+    "english": "C1 (Advanced)"
+  },
+
+  "methodology": {
+    "approach": "AI-first development with transparent documentation",
+    "principles": [
+      "Transparent documentation of AI usage (Claude, Codex, Gemini)",
+      "Context window optimization and iterative workflows",
+      "Human verification integrated with AI assistance",
+      "Sovereign computing stack (OS, browser, AI, identity)",
+      "Community-first, MIT-licensed systems",
+      "Focus on autonomy and inclusion"
+    ]
+  },
+
+  "values": [
+    "Building for marginalized communities",
+    "Open-source transparency",
+    "Decentralized architecture",
+    "Sovereign identity and autonomy",
+    "Infrastructure for inclusion",
+    "Systems-level thinking"
+  ]
+}
