@@ -19,8 +19,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV PORT=5000
+ENV PORT=8080
 
-EXPOSE 5000
+EXPOSE 8080
 
-CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "job_automata.presentation.web.app:app"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 job_automata.presentation.web.app:app"]
