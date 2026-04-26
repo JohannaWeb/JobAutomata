@@ -7,7 +7,6 @@ Your API key was committed to git (visible in `.env`).
 
 **Action:**
 1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Delete the old key: `AIzaSyCWQSM78muvd9asLJgszs051c8ahEXK6zc`
 3. Create a new API key
 4. Add to Railway secrets (see below)
 
@@ -25,8 +24,8 @@ Set these in Railway Project Settings → Variables:
 
 ```
 GEMINI_API_KEY=<your_new_key>
-LINKEDIN_EMAIL=<your_email>
-LINKEDIN_PASSWORD=<your_password>
+DASHBOARD_TOKEN=<long_random_token_required_for_public_deploys>
+ENABLE_DANGEROUS_AUTOMATION=false
 DEBUG=False
 PORT=8000
 ```
@@ -62,8 +61,8 @@ PORT=8000
    ```
 
 2. **Create Environment Variables**
-   - GEMINI_API_KEY (required)
-   - LINKEDIN_EMAIL, LINKEDIN_PASSWORD (optional)
+   - DASHBOARD_TOKEN (required for any public deployment)
+   - GEMINI_API_KEY (optional, only for AI cover letter generation)
 
 3. **Deploy**
    - Push to master: `git push`

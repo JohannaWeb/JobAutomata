@@ -35,7 +35,6 @@ Quick workflow:
 make scrape-300
 make test-letters
 make dry-run
-make apply
 ```
 
 Or with Python directly:
@@ -43,7 +42,6 @@ Or with Python directly:
 python3 run.py --mode init
 python3 run.py --mode scrape --markdown target-companies-300.md
 python3 run.py --mode test
-python3 run.py --mode apply
 ```
 
 See AI_SETUP.md for detailed AI cover letter configuration.
@@ -62,7 +60,7 @@ make install: Install dependencies (google-generativeai, python-dotenv)
 
 make dry-run: Test applications without submitting
 
-make apply: Apply to all companies in CSV
+make apply: Open apply flows for companies in CSV
 
 make test-scraper: Test scraper on single company
 
@@ -151,6 +149,21 @@ name,category,url,careers_url,job_board,description,applied
 Anthropic,Machine Learning,https://anthropic.com,https://anthropic.com/careers,custom,"AI safety company...",False
 ```
 
+### Job Filtering
+
+Add `job_search` to `profile.json` to avoid clicking the first listing blindly:
+
+```
+"job_search": {
+  "desired_titles": ["systems engineer", "rust engineer", "backend engineer"],
+  "excluded_titles": ["intern", "student", "sales", "marketing"],
+  "locations": ["remote", "europe", "portugal"],
+  "remote_only": false
+}
+```
+
+If `job_search` is omitted, the legacy behavior is preserved and the first listing is opened.
+
 ## Target Companies
 
 300 companies organized into categories:
@@ -211,7 +224,7 @@ Output: companies.csv with populated URLs and descriptions.
 Finds hiring managers on LinkedIn (optional).
 
 ```
-python3 run.py --mode hunt --linkedin-email your@email.com --linkedin-password yourpass
+LINKEDIN_PASSWORD=yourpass python3 run.py --mode hunt --linkedin-email your@email.com
 ```
 
 Output: linkedin_managers.csv
@@ -228,20 +241,21 @@ Output: Preview of what would be sent to each company.
 
 ### Mode: apply
 
-Submits real applications via browser automation.
+Opens the first detected application flow for supported job boards.
 
 ```
 python3 run.py --mode apply --csv companies.csv
 ```
 
-Output: applications_YYYYMMDD_HHMMSS.csv with results.
+Output: applications_YYYYMMDD_HHMMSS.csv with browser-action results.
+The source companies CSV is also updated with `applied=True`, `application_date`, and `notes` when an apply flow opens successfully.
 
 ### Mode: full
 
 Runs all steps in sequence.
 
 ```
-python3 run.py --mode full --linkedin-email X --linkedin-password Y
+LINKEDIN_PASSWORD=Y python3 run.py --mode full --linkedin-email X
 ```
 
 ## Cover Letter Generation
@@ -296,7 +310,7 @@ Chrome/Chromium required
 ChromeDriver auto-detected
 
 Profiles:
-Multiple CSV files supported (companies.csv, companies_100.csv, companies_300.csv)
+Multiple CSV files supported (`make dry-run CSV=companies_100.csv`, `make apply CSV=companies_300.csv`)
 Cache stored in url_cache.json (survives restarts)
 
 ## Output Files
@@ -389,7 +403,7 @@ Optional: Add billing at https://console.cloud.google.com/billing for more reque
 
 4. Test dry run: make dry-run (final check before applying)
 
-5. Apply: make apply (submit real applications)
+5. Apply: make apply (opens supported apply flows; review results carefully)
 
 6. Track results: Check applications_*.csv for status
 

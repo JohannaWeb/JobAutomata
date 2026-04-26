@@ -68,9 +68,17 @@ Edit with your details:
  "resume_file": "path/to/resume.pdf",
  "cover_letter_template": "Looking forward to discussing how my experience in {focus_area} aligns with {company_name}.",
  "focus_areas": ["Rust systems programming", "Decentralized protocols", "ML/LLM engineering"],
- "skills": ["Rust", "Python", "JavaScript", "Protocol Design", "ML/LLaMA fine-tuning"]
+ "skills": ["Rust", "Python", "JavaScript", "Protocol Design", "ML/LLaMA fine-tuning"],
+ "job_search": {
+  "desired_titles": ["systems engineer", "rust engineer", "backend engineer"],
+  "excluded_titles": ["intern", "student", "sales", "marketing"],
+  "locations": ["remote", "europe", "portugal"],
+  "remote_only": false
+ }
 }
 ```
+
+If `job_search` is omitted, the legacy behavior is preserved and the first listing is opened.
 
 ---
 
@@ -88,14 +96,12 @@ Find hiring managers and recruiters at each company.
 # Hunt managers for all companies in CSV
 python linkedin_hunter.py \
  --email your.email@example.com \
- --password your_password \
  --csv companies.csv \
  --output linkedin_managers.csv
 
 # Hunt single company
 python linkedin_hunter.py \
  --email your.email@example.com \
- --password your_password \
  --company "Anthropic"
 ```
 
@@ -136,10 +142,10 @@ This logs:
 
 ## Step 5: Auto-Apply to Companies
 
-Once verified with dry-run:
+Once verified with dry-run, this opens supported application flows in the browser. Final form submission is not verified.
 
 ```bash
-# Run actual applications
+# Open application flows
 python auto_apply.py --csv companies.csv
 ```
 
@@ -153,6 +159,7 @@ python auto_apply.py --csv companies.csv
  - Customized cover letter
 5. Submits applications
 6. Logs results to `applications_YYYYMMDD_HHMMSS.csv`
+7. Marks successful browser actions in the source CSV with `applied=True`, `application_date`, and `notes`
 
 ### Application Results
 ```
@@ -178,7 +185,7 @@ nano profile.json
 head -20 companies.csv
 
 # 4. (Optional) Find hiring managers (30 min - requires LinkedIn)
-python linkedin_hunter.py --email X --password Y --csv companies.csv
+LINKEDIN_PASSWORD=Y python linkedin_hunter.py --email X --csv companies.csv
 
 # 5. Test dry run (1 min)
 python auto_apply.py --dry-run
@@ -259,7 +266,7 @@ python auto_apply.py --csv companies_greenhouse.csv
 
 ## Advanced: Headless Mode & Unattended Runs
 
-To run applications entirely unattended (overnight, etc):
+To run application flow opening unattended:
 
 ```bash
 # Run in background with nohup

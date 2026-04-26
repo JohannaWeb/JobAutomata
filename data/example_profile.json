@@ -7,6 +7,12 @@
   "resume_file": "resume.pdf",
   "focus_areas": ["Rust systems programming", "Decentralized protocols", "ML/LLM engineering"],
   "skills": ["Rust", "Python", "JavaScript", "Protocol Design", "ML/LLaMA fine-tuning"],
+  "job_search": {
+    "desired_titles": ["systems engineer", "rust engineer", "backend engineer", "ml engineer"],
+    "excluded_titles": ["intern", "student", "sales", "marketing"],
+    "locations": ["remote", "europe", "portugal"],
+    "remote_only": false
+  },
   "cover_letter_templates": {
     "default": "I'm drawn to {company_name} because {company_description}. With expertise in {focus_area}, I'm eager to contribute.",
     "decentralized_web3": "I'm passionate about decentralized protocols and sovereignty. I'm excited about {company_name} because {company_description}. I'd love to contribute my expertise in {focus_area}.",

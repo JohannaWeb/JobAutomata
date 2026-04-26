@@ -1,0 +1,2 @@
+"""LinkedIn integration adapter."""
+

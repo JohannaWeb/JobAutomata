@@ -12,13 +12,22 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
-from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 import logging
+from werkzeug.utils import secure_filename
 
-app = Flask(__name__, template_folder='templates')
-CORS(app)
+from job_automata.config import (
+    APPLICATIONS_DIR,
+    DATA_DIR,
+    DEFAULT_COMPANIES,
+    DEFAULT_PROFILE,
+    DEFAULT_TARGET_COMPANIES,
+    PROJECT_ROOT,
+    STATE_DIR,
+)
+
+app = Flask(__name__, template_folder=str(PROJECT_ROOT / 'templates'))
 
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///jobautomata.db')
@@ -32,8 +41,65 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path(__file__).parent
-RUN_HISTORY_FILE = DATA_DIR / '.run_history.json'  # Fallback for local dev
+STATE_DIR.mkdir(parents=True, exist_ok=True)
+APPLICATIONS_DIR.mkdir(parents=True, exist_ok=True)
+RUN_HISTORY_FILE = STATE_DIR / 'run_history.json'  # Fallback for local dev
+DANGEROUS_AUTOMATION_ENABLED = os.getenv('ENABLE_DANGEROUS_AUTOMATION') == 'true'
+DASHBOARD_TOKEN = os.getenv('DASHBOARD_TOKEN')
+LOCAL_ADDRESSES = {'127.0.0.1', '::1', 'localhost'}
+
+
+@app.before_request
+def require_local_or_token():
+    """Fail closed for remote dashboard/API access unless an explicit token is configured."""
+    if request.path.startswith('/static/'):
+        return None
+
+    if DASHBOARD_TOKEN:
+        supplied = request.headers.get('X-Dashboard-Token')
+        auth = request.headers.get('Authorization', '')
+        bearer = auth.removeprefix('Bearer ').strip() if auth.startswith('Bearer ') else None
+        if supplied == DASHBOARD_TOKEN or bearer == DASHBOARD_TOKEN:
+            return None
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    remote_addr = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
+    if remote_addr in LOCAL_ADDRESSES:
+        return None
+
+    return jsonify({
+        'error': 'Dashboard is local-only unless DASHBOARD_TOKEN is set'
+    }), 403
+
+
+def dangerous_automation_disabled():
+    return jsonify({
+        'error': 'Browser automation from HTTP is disabled. Set ENABLE_DANGEROUS_AUTOMATION=true only for a trusted local environment.'
+    }), 403
+
+
+def current_companies_name():
+    current_file = STATE_DIR / 'current_companies'
+    if current_file.exists():
+        name = current_file.read_text().strip()
+        if name:
+            return name
+    return DEFAULT_COMPANIES.name
+
+
+def safe_child_path(base_dir: Path, filename: str, suffixes: set[str]) -> Path:
+    """Resolve a user-selected file and verify it stays under base_dir."""
+    safe_name = secure_filename(filename or '')
+    if safe_name != filename or Path(safe_name).name != safe_name:
+        raise ValueError('Invalid filename')
+    if Path(safe_name).suffix.lower() not in suffixes:
+        raise ValueError(f'Invalid file type. Allowed: {", ".join(sorted(suffixes))}')
+
+    base = base_dir.resolve()
+    candidate = (base / safe_name).resolve()
+    if base != candidate.parent:
+        raise ValueError('Invalid file path')
+    return candidate
 
 def load_run_history():
     """Load run history from file"""
@@ -83,7 +149,7 @@ def get_all_stats():
             successful = 0
             last_run = None
 
-            app_csvs = sorted(DATA_DIR.glob('applications_*.csv'), reverse=True)
+            app_csvs = sorted(APPLICATIONS_DIR.glob('applications_*.csv'), reverse=True)
             for csv_file in app_csvs:
                 if 'dry_run' in csv_file.name:
                     continue
@@ -117,14 +183,14 @@ def get_all_stats():
 @app.route('/')
 def index():
     """Serve the dashboard"""
-    return send_from_directory('templates', 'dashboard.html')
+    return send_from_directory(PROJECT_ROOT / 'templates', 'dashboard.html')
 
 @app.route('/api/stats')
 def get_stats():
     """Get dashboard statistics"""
     stats = get_all_stats()
 
-    companies_csv = DATA_DIR / 'companies.csv'
+    companies_csv = DATA_DIR / current_companies_name()
     if companies_csv.exists():
         with open(companies_csv, 'r') as f:
             companies = len(list(csv.DictReader(f)))
@@ -140,8 +206,8 @@ def dry_run():
     results = []
     logs = []
 
-    companies_csv = DATA_DIR / 'companies.csv'
-    profile_file = DATA_DIR / 'profile.json'
+    companies_csv = DATA_DIR / current_companies_name()
+    profile_file = DEFAULT_PROFILE
 
     if not companies_csv.exists():
         return jsonify({'error': 'Companies CSV not found'}), 404
@@ -208,19 +274,22 @@ def dry_run():
 @app.route('/api/scrape', methods=['POST'])
 def scrape():
     """Start scraping URLs"""
+    if not DANGEROUS_AUTOMATION_ENABLED:
+        return dangerous_automation_disabled()
+
     logger.info("Starting URL scraper")
 
     try:
         result = subprocess.run(
-            ['python3', 'url_scraper.py', '--markdown', 'target-companies-100.md', '--csv', 'companies.csv'],
-            cwd=DATA_DIR,
+            ['python3', 'url_scraper.py', '--markdown', str(DEFAULT_TARGET_COMPANIES), '--csv', str(DEFAULT_COMPANIES)],
+            cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
             timeout=60
         )
 
         companies = []
-        companies_csv = DATA_DIR / 'companies.csv'
+        companies_csv = DEFAULT_COMPANIES
 
         if companies_csv.exists():
             with open(companies_csv, 'r') as f:
@@ -249,6 +318,9 @@ def scrape():
 @app.route('/api/run-full', methods=['POST'])
 def run_full():
     """Start full automation workflow"""
+    if not DANGEROUS_AUTOMATION_ENABLED:
+        return dangerous_automation_disabled()
+
     logger.info("Starting full automation workflow")
 
     history = load_run_history()
@@ -267,8 +339,8 @@ def run_full():
 
     try:
         result = subprocess.run(
-            ['python3', 'auto_apply.py', '--csv', 'companies.csv'],
-            cwd=DATA_DIR,
+            ['python3', 'auto_apply.py', '--csv', str(DEFAULT_COMPANIES)],
+            cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
             timeout=3600
@@ -295,7 +367,7 @@ def run_full():
 def get_cvs():
     """Get list of CV variants"""
     cv_dir = DATA_DIR / 'cvs'
-    current_cv_file = DATA_DIR / '.current_cv'
+    current_cv_file = STATE_DIR / 'current_cv'
     current_cv = 'cv_main.md'
 
     if current_cv_file.exists():
@@ -326,7 +398,12 @@ def select_cv():
     if not cv_name:
         return jsonify({'error': 'CV name required'}), 400
 
-    current_cv_file = DATA_DIR / '.current_cv'
+    try:
+        safe_child_path(DATA_DIR, cv_name, {'.md', '.pdf'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+    current_cv_file = STATE_DIR / 'current_cv'
     with open(current_cv_file, 'w') as f:
         f.write(cv_name)
 
@@ -342,16 +419,12 @@ def upload_cv():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
 
-    if not file.filename.endswith('.md'):
-        return jsonify({'error': 'Only .md files allowed'}), 400
-
     try:
-        # Save to root or cvs directory
-        cv_path = DATA_DIR / file.filename
+        cv_path = safe_child_path(DATA_DIR, file.filename, {'.md', '.pdf'})
         file.save(str(cv_path))
 
         # Set as current CV
-        current_cv_file = DATA_DIR / '.current_cv'
+        current_cv_file = STATE_DIR / 'current_cv'
         with open(current_cv_file, 'w') as f:
             f.write(file.filename)
 
@@ -363,10 +436,19 @@ def upload_cv():
 @app.route('/api/cv/<filename>')
 def get_cv(filename):
     """Get CV content"""
-    cv_path = DATA_DIR / 'cvs' / filename
+    try:
+        cv_path = safe_child_path(DATA_DIR / 'cvs', filename, {'.md', '.pdf'})
+    except ValueError:
+        try:
+            cv_path = safe_child_path(DATA_DIR, filename, {'.md', '.pdf'})
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
 
     if not cv_path.exists():
-        cv_path = DATA_DIR / filename
+        try:
+            cv_path = safe_child_path(DATA_DIR, filename, {'.md', '.pdf'})
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
 
     if not cv_path.exists():
         return jsonify({'error': 'CV not found'}), 404
@@ -394,12 +476,7 @@ def clear_history():
 @app.route('/api/companies')
 def get_companies_list():
     """Get list of available companies CSV files and current selection"""
-    current_file = DATA_DIR / '.current_companies'
-    current = 'companies.csv'
-
-    if current_file.exists():
-        with open(current_file, 'r') as f:
-            current = f.read().strip()
+    current = current_companies_name()
 
     companies_files = []
     for csv_file in sorted(DATA_DIR.glob('companies*.csv')):
@@ -423,11 +500,15 @@ def select_companies():
     if not csv_name:
         return jsonify({'error': 'CSV name required'}), 400
 
-    csv_path = DATA_DIR / csv_name
+    try:
+        csv_path = safe_child_path(DATA_DIR, csv_name, {'.csv'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
     if not csv_path.exists():
         return jsonify({'error': 'File not found'}), 404
 
-    current_file = DATA_DIR / '.current_companies'
+    current_file = STATE_DIR / 'current_companies'
     with open(current_file, 'w') as f:
         f.write(csv_name)
 
@@ -444,14 +525,11 @@ def select_companies():
 @app.route('/api/companies/view')
 def view_companies():
     """Get the current companies list"""
-    current_file = DATA_DIR / '.current_companies'
-    csv_name = 'companies.csv'
-
-    if current_file.exists():
-        with open(current_file, 'r') as f:
-            csv_name = f.read().strip()
-
-    csv_path = DATA_DIR / csv_name
+    csv_name = current_companies_name()
+    try:
+        csv_path = safe_child_path(DATA_DIR, csv_name, {'.csv'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
     companies = []
 
     if csv_path.exists():
@@ -468,14 +546,11 @@ def update_companies():
     data = request.get_json()
     companies = data.get('companies', [])
 
-    current_file = DATA_DIR / '.current_companies'
-    csv_name = 'companies.csv'
-
-    if current_file.exists():
-        with open(current_file, 'r') as f:
-            csv_name = f.read().strip()
-
-    csv_path = DATA_DIR / csv_name
+    csv_name = current_companies_name()
+    try:
+        csv_path = safe_child_path(DATA_DIR, csv_name, {'.csv'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
     if not companies:
         return jsonify({'error': 'No companies provided'}), 400
@@ -506,9 +581,10 @@ def server_error(e):
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
+    host = os.getenv('DASHBOARD_HOST', '127.0.0.1')
     debug = os.getenv('DEBUG', 'False').lower() == 'true'
 
     logger.info("Starting Job Automata Web Dashboard")
-    logger.info(f"Visit http://0.0.0.0:{port} in your browser")
+    logger.info(f"Visit http://{host}:{port} in your browser")
 
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    app.run(host=host, port=port, debug=debug)
