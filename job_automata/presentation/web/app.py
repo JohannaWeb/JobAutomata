@@ -17,7 +17,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 import logging
 from werkzeug.utils import secure_filename
-from prometheus_client import Counter, Histogram, Gauge, generate_letters
+from prometheus_client import Counter, Histogram, Gauge, generate_latest
 
 from job_automata.config import (
     APPLICATIONS_DIR,
@@ -139,7 +139,7 @@ def track_request_end(response):
 def metrics():
     """Prometheus metrics endpoint."""
     from flask import Response
-    return Response(generate_letters(), mimetype='text/plain')
+    return Response(generate_latest(), mimetype='text/plain')
 
 
 def dangerous_automation_disabled():
