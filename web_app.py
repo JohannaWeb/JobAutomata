@@ -2,6 +2,7 @@
 """
 Job Automata Web Dashboard
 Modern Flask app with dry run and scraping preview capabilities
+PostgreSQL-backed for data persistence
 """
 
 import json
@@ -12,10 +13,18 @@ from datetime import datetime
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 import logging
 
 app = Flask(__name__, template_folder='templates')
 CORS(app)
+
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///jobautomata.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,7 +33,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).parent
-RUN_HISTORY_FILE = DATA_DIR / '.run_history.json'
+RUN_HISTORY_FILE = DATA_DIR / '.run_history.json'  # Fallback for local dev
 
 def load_run_history():
     """Load run history from file"""
@@ -53,33 +62,57 @@ def parse_applications_csv(csv_path):
     return companies
 
 def get_all_stats():
-    """Aggregate statistics from all application runs"""
-    total_apps = 0
-    successful = 0
-    last_run = None
+    """Aggregate statistics from database or CSV files"""
+    try:
+        if 'postgresql' in DATABASE_URL or 'mysql' in DATABASE_URL:
+            # Get from database
+            result = db.session.execute(text("""
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN success = true THEN 1 ELSE 0 END) as successful,
+                    MAX(timestamp) as last_run
+                FROM applications
+            """)).fetchone()
 
-    app_csvs = sorted(DATA_DIR.glob('applications_*.csv'), reverse=True)
+            total_apps = result[0] or 0
+            successful = result[1] or 0
+            last_run = result[2]
+        else:
+            # Fallback to CSV for local dev
+            total_apps = 0
+            successful = 0
+            last_run = None
 
-    for csv_file in app_csvs:
-        if 'dry_run' in csv_file.name:
-            continue
-        apps = parse_applications_csv(str(csv_file))
-        for app in apps:
-            total_apps += 1
-            if app['success']:
-                successful += 1
-            if last_run is None:
-                last_run = app['timestamp']
+            app_csvs = sorted(DATA_DIR.glob('applications_*.csv'), reverse=True)
+            for csv_file in app_csvs:
+                if 'dry_run' in csv_file.name:
+                    continue
+                apps = parse_applications_csv(str(csv_file))
+                for app in apps:
+                    total_apps += 1
+                    if app['success']:
+                        successful += 1
+                    if last_run is None:
+                        last_run = app['timestamp']
 
-    success_rate = int((successful / total_apps * 100)) if total_apps > 0 else 0
+        success_rate = int((successful / total_apps * 100)) if total_apps > 0 else 0
 
-    return {
-        'total_applications': total_apps,
-        'successful_applies': successful,
-        'success_rate': success_rate,
-        'last_run': last_run or 'Never',
-        'companies': 0
-    }
+        return {
+            'total_applications': total_apps,
+            'successful_applies': successful,
+            'success_rate': success_rate,
+            'last_run': str(last_run) if last_run else 'Never',
+            'companies': 0
+        }
+    except Exception as e:
+        logger.error(f"Error getting stats: {e}")
+        return {
+            'total_applications': 0,
+            'successful_applies': 0,
+            'success_rate': 0,
+            'last_run': 'Never',
+            'companies': 0
+        }
 
 @app.route('/')
 def index():
