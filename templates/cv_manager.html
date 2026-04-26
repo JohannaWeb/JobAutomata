@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>CV Manager - Job Automata</title>
+ <style>
+ * {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+ }
+
+ body {
+ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+ min-height: 100vh;
+ padding: 20px;
+ }
+
+ .container {
+ max-width: 1200px;
+ margin: 0 auto;
+ display: grid;
+ grid-template-columns: 300px 1fr;
+ gap: 20px;
+ }
+
+ .sidebar {
+ background: white;
+ border-radius: 12px;
+ padding: 20px;
+ box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+ height: fit-content;
+ position: sticky;
+ top: 20px;
+ }
+
+ .sidebar h2 {
+ font-size: 18px;
+ margin-bottom: 15px;
+ color: #333;
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ }
+
+ .cv-list {
+ display: flex;
+ flex-direction: column;
+ gap: 8px;
+ }
+
+ .cv-item {
+ padding: 12px;
+ background: #f5f5f5;
+ border-radius: 8px;
+ cursor: pointer;
+ transition: all 0.2s;
+ border-left: 3px solid transparent;
+ font-size: 14px;
+ color: #555;
+ }
+
+ .cv-item:hover {
+ background: #efefef;
+ transform: translateX(4px);
+ }
+
+ .cv-item.active {
+ background: #667eea;
+ color: white;
+ border-left-color: #764ba2;
+ }
+
+ .create-variant {
+ margin-top: 15px;
+ padding-top: 15px;
+ border-top: 1px solid #eee;
+ }
+
+ input[type="text"] {
+ width: 100%;
+ padding: 8px;
+ border: 1px solid #ddd;
+ border-radius: 6px;
+ font-size: 13px;
+ margin-bottom: 8px;
+ }
+
+ button {
+ width: 100%;
+ padding: 10px;
+ background: #667eea;
+ color: white;
+ border: none;
+ border-radius: 6px;
+ cursor: pointer;
+ font-size: 14px;
+ transition: background 0.2s;
+ }
+
+ button:hover {
+ background: #764ba2;
+ }
+
+ button:disabled {
+ background: #ccc;
+ cursor: not-allowed;
+ }
+
+ .main-content {
+ background: white;
+ border-radius: 12px;
+ padding: 30px;
+ box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+ overflow-y: auto;
+ max-height: calc(100vh - 40px);
+ }
+
+ .header {
+ margin-bottom: 20px;
+ padding-bottom: 15px;
+ border-bottom: 2px solid #f0f0f0;
+ }
+
+ .header h1 {
+ font-size: 24px;
+ color: #333;
+ margin-bottom: 5px;
+ }
+
+ .header p {
+ color: #999;
+ font-size: 14px;
+ }
+
+ .cv-content {
+ background: #fafafa;
+ padding: 20px;
+ border-radius: 8px;
+ line-height: 1.6;
+ color: #333;
+ white-space: pre-wrap;
+ word-wrap: break-word;
+ font-family: 'Courier New', monospace;
+ font-size: 13px;
+ max-height: 600px;
+ overflow-y: auto;
+ }
+
+ .status {
+ margin-top: 15px;
+ padding: 10px;
+ border-radius: 6px;
+ font-size: 13px;
+ text-align: center;
+ display: none;
+ }
+
+ .status.success {
+ background: #d4edda;
+ color: #155724;
+ border: 1px solid #c3e6cb;
+ display: block;
+ }
+
+ .status.error {
+ background: #f8d7da;
+ color: #721c24;
+ border: 1px solid #f5c6cb;
+ display: block;
+ }
+
+ .loading {
+ text-align: center;
+ padding: 40px;
+ color: #999;
+ }
+
+ @media (max-width: 768px) {
+ .container {
+ grid-template-columns: 1fr;
+ }
+
+ .sidebar {
+ position: static;
+ }
+
+ .main-content {
+ max-height: none;
+ }
+ }
+ </style>
+</head>
+<body>
+ <div class="container">
+ <div class="sidebar">
+ <h2> Your CVs</h2>
+ <div class="cv-list" id="cvList">
+ <div class="loading">Loading...</div>
+ </div>
+
+ <div class="create-variant">
+ <h3 style="font-size: 14px; margin-bottom: 10px; color: #333;">Create Variant</h3>
+ <input type="text" id="variantName" placeholder="e.g. cv_ml_focused" />
+ <button onclick="createVariant()">Create from Current</button>
+ </div>
+ </div>
+
+ <div class="main-content">
+ <div class="header">
+ <h1 id="cvTitle">Loading...</h1>
+ <p id="cvStatus"></p>
+ </div>
+ <div class="cv-content" id="cvContent">
+ <div class="loading">Loading CV...</div>
+ </div>
+ <div class="status" id="status"></div>
+ </div>
+ </div>
+
+ <script>
+ let currentCV = null;
+
+ async function loadCVList() {
+ try {
+ const res = await fetch('/api/cvs');
+ const data = await res.json();
+ const list = document.getElementById('cvList');
+ list.innerHTML = '';
+
+ data.cvs.forEach(cv => {
+ const item = document.createElement('div');
+ item.className = 'cv-item' + (cv === data.current ? ' active' : '');
+ item.textContent = cv;
+ item.onclick = () => switchCV(cv);
+ list.appendChild(item);
+ });
+
+ currentCV = data.current;
+ loadCV(currentCV);
+ } catch (err) {
+ showStatus('Error loading CVs', 'error');
+ }
+ }
+
+ async function loadCV(filename) {
+ try {
+ const res = await fetch(`/api/cv/${filename}`);
+ const data = await res.json();
+
+ document.getElementById('cvTitle').textContent = ` ${filename}`;
+ document.getElementById('cvStatus').textContent =
+ data.current ? ' Currently active' : 'Click to activate';
+ document.getElementById('cvContent').textContent = data.content;
+
+ currentCV = filename;
+ } catch (err) {
+ showStatus('Error loading CV', 'error');
+ }
+ }
+
+ async function switchCV(filename) {
+ try {
+ const res = await fetch(`/api/cv/${filename}/switch`, { method: 'POST' });
+ const data = await res.json();
+
+ if (data.success) {
+ showStatus(` Switched to ${filename}`, 'success');
+ loadCVList();
+ } else {
+ showStatus('Error switching CV', 'error');
+ }
+ } catch (err) {
+ showStatus('Error switching CV', 'error');
+ }
+ }
+
+ async function createVariant() {
+ const name = document.getElementById('variantName').value.trim();
+ if (!name) {
+ showStatus('Enter a name for the variant', 'error');
+ return;
+ }
+
+ try {
+ const res = await fetch(`/api/cv/${currentCV}/create-variant`, {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ name })
+ });
+ const data = await res.json();
+
+ if (data.success) {
+ showStatus(` Created ${data.filename}`, 'success');
+ document.getElementById('variantName').value = '';
+ loadCVList();
+ } else {
+ showStatus(data.error || 'Error creating variant', 'error');
+ }
+ } catch (err) {
+ showStatus('Error creating variant', 'error');
+ }
+ }
+
+ function showStatus(message, type) {
+ const status = document.getElementById('status');
+ status.textContent = message;
+ status.className = `status ${type}`;
+ setTimeout(() => { status.className = 'status'; }, 3000);
+ }
+
+ loadCVList();
+ </script>
+</body>
+</html>

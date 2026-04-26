@@ -1,9 +1,9 @@
 -JOHANNA ALMEIDA
 Systems Engineer & Infrastructure Builder
  Porto, Portugal
- 🔗 https://github.com/JohannaWeb
- 🔗 https://juntos.chat
- 📧 JohannaWebApps@proton.me
+ https://github.com/JohannaWeb
+ https://juntos.chat
+ JohannaWebApps@proton.me
 
 EXECUTIVE SUMMARY
 Systems engineer with 17 years of programming experience and 9+ years professional background. Built complete infrastructure stacks from first principles: browser engines, language models, cryptographic implementations, and decentralized identity systems.
@@ -14,7 +14,7 @@ Core focus: Building sovereign computing infrastructure for communities excluded
 RECENT WORK (2026)
 Sisyphus: Language Model Training from Scratch
 PyTorch, Triton, CUDA Kernel Design
- 🔗https://github.com/JohannaWeb/Bastion/tree/change-transformer-arquitecture 🔗 Hacker News: https://news.ycombinator.com/item?id=47674749
+ https://github.com/JohannaWeb/Bastion/tree/change-transformer-arquitecture Hacker News: https://news.ycombinator.com/item?id=47674749
 25.6M parameter byte-level language model trained from random initialization (no fine-tuning)
 Novel HybridAttention architecture (local attention + recurrent state + gating)
 51x inference speedup (5.6 tok/s → 286.6 tok/s)
@@ -29,7 +29,7 @@ Hacker News front page (40+ points)
 
 Aurora: Browser Engine from First Principles
 Rust, wgpu, CSS Layout, Parsing
- 🔗 https://github.com/JohannaWeb/Bastion/tree/main/projects/Aurora
+ https://github.com/JohannaWeb/Bastion/tree/main/projects/Aurora
 Full browser pipeline: parsing → layout → rendering
 Custom HTML parser (no external libraries)
 CSS engine (cascade, specificity, inline/block/flex layouts)
@@ -41,7 +41,7 @@ Noticed by Servo core team (Josh Matthews, Nico Burns)
 
 Juntos: Decentralized Real-Time Chat
 TypeScript, AT Protocol, WebSockets
- 🔗https://github.com/JohannaWeb/ProjectFalcon 🔗 https://juntos.chat
+ https://github.com/JohannaWeb/ProjectFalcon https://juntos.chat
 First real-time decentralized chat on AT Protocol
 No centralized relay servers
 DID-based identity + cryptographic key management
@@ -49,7 +49,7 @@ Built for marginalized communities
 
 ProjectFalcon: JVM AT Protocol SDK & Sovereign Stack
 Java 21, Cryptography, Distributed Systems
- 🔗 https://github.com/JohannaWeb/ProjectFalcon
+ https://github.com/JohannaWeb/ProjectFalcon
 First native JVM implementation of AT Protocol
 ES256K (secp256k1) cryptography built from scratch
 Multicodec encoding/decoding
@@ -58,7 +58,7 @@ Research Contribution:
 Adversarial Trust Protocol (fixes EigenTrust bootstrapping flaw)
 
 46-DAY INTENSIVE SPRINT (Feb–Mar 2026)
-🔗 https://github.com/JohannaWeb?tab=repositories
+ https://github.com/JohannaWeb?tab=repositories
 Produced 38 public repositories, including:
 Rust-Boy: Game Boy Color emulator (runs Pokémon Crystal)
 Chip-8 Emulator: Full instruction set virtual machine
@@ -124,15 +124,13 @@ RESEARCH & PUBLICATIONS
 Adversarial Trust Protocol for Decentralized Identity (2026)
 Identity-Driven Discourse Systems (IDDS) (2026)
 AI Alignment and Community Care (2026)
-🔗 https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6468658
+ https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6468658
 
 EDUCATION
 Bachelor of Science in Software Engineering
  Instituto Superior de Engenharia do Porto (ISEP) | 2012–2017
 Informatics and Multimedia 
  Colegio de Gaia 2009-2012
-
-
 
 LANGUAGES
 Portuguese: Native
@@ -153,5 +151,4 @@ Hacker News front page (Hybrid Attention)
 Google ranking (#2 “Hybrid Attention”)
 Servo core team recognition
 Strong open-source engagement
-
 

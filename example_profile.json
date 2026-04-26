@@ -1,0 +1,17 @@
+{
+  "email": "your-email@example.com",
+  "phone": "+1-XXX-XXX-XXXX",
+  "name": "Your Name",
+  "linkedin_url": "https://linkedin.com/in/yourprofile",
+  "github_url": "https://github.com/yourprofile",
+  "resume_file": "resume.pdf",
+  "focus_areas": ["Rust systems programming", "Decentralized protocols", "ML/LLM engineering"],
+  "skills": ["Rust", "Python", "JavaScript", "Protocol Design", "ML/LLaMA fine-tuning"],
+  "cover_letter_templates": {
+    "default": "I'm drawn to {company_name} because {company_description}. With expertise in {focus_area}, I'm eager to contribute.",
+    "decentralized_web3": "I'm passionate about decentralized protocols and sovereignty. I'm excited about {company_name} because {company_description}. I'd love to contribute my expertise in {focus_area}.",
+    "machine_learning": "I'm excited about {company_name}'s work: {company_description}. With deep expertise in {focus_area}, I'm eager to contribute to cutting-edge AI solutions.",
+    "systems_infrastructure": "I'm drawn to {company_name} because {company_description}. I specialize in {focus_area} and would love to bring my systems engineering expertise.",
+    "browser": "I'm impressed by {company_name}'s mission: {company_description}. With expertise in {focus_area}, I'd love to contribute."
+  }
+}

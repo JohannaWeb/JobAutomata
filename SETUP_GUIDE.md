@@ -9,7 +9,7 @@ Complete guide to scrape URLs, find hiring managers, and auto-apply to 100 compa
 ```bash
 pip install selenium requests beautifulsoup4
 # Also install ChromeDriver for Selenium
-brew install chromedriver  # macOS
+brew install chromedriver # macOS
 # or download from: https://chromedriver.chromium.org/
 ```
 
@@ -60,15 +60,15 @@ This creates:
 Edit with your details:
 ```json
 {
-  "email": "your-email@example.com",
-  "phone": "+1-XXX-XXX-XXXX",
-  "name": "Your Name",
-  "linkedin_url": "https://linkedin.com/in/yourprofile",
-  "github_url": "https://github.com/yourprofile",
-  "resume_file": "path/to/resume.pdf",
-  "cover_letter_template": "Looking forward to discussing how my experience in {focus_area} aligns with {company_name}.",
-  "focus_areas": ["Rust systems programming", "Decentralized protocols", "ML/LLM engineering"],
-  "skills": ["Rust", "Python", "JavaScript", "Protocol Design", "ML/LLaMA fine-tuning"]
+ "email": "your-email@example.com",
+ "phone": "+1-XXX-XXX-XXXX",
+ "name": "Your Name",
+ "linkedin_url": "https://linkedin.com/in/yourprofile",
+ "github_url": "https://github.com/yourprofile",
+ "resume_file": "path/to/resume.pdf",
+ "cover_letter_template": "Looking forward to discussing how my experience in {focus_area} aligns with {company_name}.",
+ "focus_areas": ["Rust systems programming", "Decentralized protocols", "ML/LLM engineering"],
+ "skills": ["Rust", "Python", "JavaScript", "Protocol Design", "ML/LLaMA fine-tuning"]
 }
 ```
 
@@ -87,16 +87,16 @@ Find hiring managers and recruiters at each company.
 ```bash
 # Hunt managers for all companies in CSV
 python linkedin_hunter.py \
-  --email your.email@example.com \
-  --password your_password \
-  --csv companies.csv \
-  --output linkedin_managers.csv
+ --email your.email@example.com \
+ --password your_password \
+ --csv companies.csv \
+ --output linkedin_managers.csv
 
 # Hunt single company
 python linkedin_hunter.py \
-  --email your.email@example.com \
-  --password your_password \
-  --company "Anthropic"
+ --email your.email@example.com \
+ --password your_password \
+ --company "Anthropic"
 ```
 
 ### Output: `linkedin_managers.csv`
@@ -106,7 +106,7 @@ Jane Smith,Talent Recruiter,Anthropic,https://linkedin.com/in/janesmith,jane@ant
 ...
 ```
 
-### ⚠️ Important Notes:
+### Important Notes:
 - LinkedIn may rate-limit or require 2FA verification
 - Email extraction is limited (LinkedIn hides emails by default)
 - Use responsibly and respect LinkedIn's ToS
@@ -148,9 +148,9 @@ python auto_apply.py --csv companies.csv
 2. Opens each careers page in headless Chrome
 3. Finds job postings matching your profile
 4. Fills out application forms with:
-   - Your name, email, phone
-   - Resume attachment
-   - Customized cover letter
+ - Your name, email, phone
+ - Resume attachment
+ - Customized cover letter
 5. Submits applications
 6. Logs results to `applications_YYYYMMDD_HHMMSS.csv`
 
@@ -195,9 +195,9 @@ cat applications_*.csv | tail -20
 ## Monitoring & Troubleshooting
 
 ### Logs
-- `url_scraper.log` — URL scraping results
-- `linkedin_hunter.log` — LinkedIn hunting results
-- `job_applications.log` — Application attempt logs
+- `url_scraper.log` - URL scraping results
+- `linkedin_hunter.log` - LinkedIn hunting results
+- `job_applications.log` - Application attempt logs
 
 ### Common Issues
 
@@ -234,8 +234,8 @@ Edit `companies.csv` to:
 Update `profile.json` to point to your actual files:
 ```json
 {
-  "resume_file": "/home/johanna/resume.pdf",
-  "cover_letter_template": "As a Rust systems engineer with {years} years of experience in {focus_area}..."
+ "resume_file": "/home/johanna/resume.pdf",
+ "cover_letter_template": "As a Rust systems engineer with {years} years of experience in {focus_area}..."
 }
 ```
 
@@ -269,7 +269,7 @@ nohup python auto_apply.py --csv companies.csv > apply.log 2>&1 &
 tail -f apply.log
 
 # Check results after completion
-cat applications_*.csv | wc -l  # Count applications
+cat applications_*.csv | wc -l # Count applications
 ```
 
 ---
@@ -307,4 +307,4 @@ Be respectful of:
 - Run with `--headless false` to watch browser automation
 - Test single company with `url_scraper.py --company "Bluesky"`
 
-Good luck! 🚀
+Good luck! 
