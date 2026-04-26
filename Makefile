@@ -13,7 +13,7 @@ help:
 	@echo " make scrape Scrape 100 companies (use COUNT=300 for all)"
 	@echo " make scrape-300 Scrape all 300 companies + descriptions"
 	@echo " make dry-run Test applications (generates cover letters)"
-	@echo " make apply Apply to all companies"
+	@echo " make apply Open apply flows for all companies"
 	@echo ""
 	@echo "Testing & Preview:"
 	@echo " make test-scraper Test scraper on single company"
@@ -31,7 +31,7 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo " make scrape COUNT=50 Scrape first 50 companies only"
-	@echo " make apply CSV=companies_100.csv Apply using different CSV"
+	@echo " make apply CSV=companies_100.csv Use a different CSV"
 
 # Setup virtual environment
 venv:
@@ -57,6 +57,7 @@ init:
 
 # Scrape companies (default 100, customize with COUNT=300)
 COUNT ?= 100
+CSV ?=
 
 scrape:
 	@if [ "$(COUNT)" = "300" ] || [ "$(COUNT)" = "all" ]; then \
@@ -77,16 +78,17 @@ scrape-300:
 
 # Hunt LinkedIn managers (requires credentials)
 hunt:
-	@read -p "Enter LinkedIn email: " email; \
-	read -s -p "Enter LinkedIn password: " password; \
-	echo ""; \
-	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode hunt --email $$email --password $$password
+	@if [ -z "$$LINKEDIN_EMAIL" ] || [ -z "$$LINKEDIN_PASSWORD" ]; then \
+		echo "Set LINKEDIN_EMAIL and LINKEDIN_PASSWORD in your environment. Credentials are not accepted on argv."; \
+		exit 1; \
+	fi
+	@. venv/bin/activate 2>/dev/null || true && python3 run.py --mode hunt --linkedin-email "$$LINKEDIN_EMAIL"
 
 # Test dry run (no applications submitted)
 dry-run:
-	@if [ -f companies_300.csv ]; then CSV=companies_300.csv; else CSV=companies.csv; fi && \
-	echo "Running dry run (no applications submitted)..."; \
-	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode test --csv $$CSV; \
+	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f companies_300.csv ]; then SELECTED_CSV=companies_300.csv; else SELECTED_CSV=companies.csv; fi && \
+	echo "Running dry run with $$SELECTED_CSV (no applications submitted)..."; \
+	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode test --csv $$SELECTED_CSV; \
 	echo " Dry run complete. Check logs for details."
 
 # Test scraper on single company
@@ -101,12 +103,11 @@ test-letters:
 
 # Apply to all companies
 apply:
-	@if [ -f companies_300.csv ]; then CSV=companies_300.csv; else CSV=companies.csv; fi && \
-	echo " WARNING: This will submit real applications!" && \
+	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f companies_300.csv ]; then SELECTED_CSV=companies_300.csv; else SELECTED_CSV=companies.csv; fi && \
+	echo " WARNING: This opens real application flows from $$SELECTED_CSV in a browser." && \
+	echo " It does not verify final form submission." && \
 	read -p "Press Enter to continue, Ctrl+C to cancel..." && \
-	echo "Applying to companies..." && \
-	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode apply --csv $$CSV && \
-	echo " Applications submitted. Check applications_*.csv for results."
+	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode apply --csv $$SELECTED_CSV
 
 # Run full workflow (init → scrape → test → apply)
 full:
@@ -114,7 +115,7 @@ full:
 	@$(MAKE) init
 	@$(MAKE) scrape-300
 	@$(MAKE) dry-run
-	@read -p "Ready to apply? Press Enter, Ctrl+C to cancel..."
+	@read -p "Ready to open apply flows? Press Enter, Ctrl+C to cancel..."
 	@$(MAKE) apply CSV=companies_300.csv
 
 # Clean generated files

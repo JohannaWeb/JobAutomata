@@ -1,0 +1,44 @@
+// Dashboard stats and rendering
+import { fetchJson, getElement, showLoading, switchTab } from './ui.js';
+import { loadHistory } from './history.js';
+import { loadCompaniesList } from './companies.js';
+
+export async function loadDashboard() {
+  try {
+    const data = await fetchJson('/api/stats');
+    getElement('headerApps').textContent = data.total_applications ?? 0;
+    getElement('headerRate').textContent = `${data.success_rate ?? 0}%`;
+    getElement('headerLastRun').textContent = data.last_run || 'Never';
+    getElement('cardTotalApps').textContent = data.total_applications ?? 0;
+    getElement('cardSuccessful').textContent = data.successful_applies ?? 0;
+    getElement('cardCompanies').textContent = data.companies ?? 0;
+  } catch (err) {
+    console.error('Error loading stats:', err);
+  }
+}
+
+export async function startFullRun() {
+  if (!confirm('Start full automation? This will submit actual applications.')) return;
+  showLoading(true);
+  try {
+    const data = await fetchJson('/api/run-full', { method: 'POST' });
+    if (!data.success) {
+      throw new Error(`Workflow ${data.status || 'failed'}`);
+    }
+    alert('Workflow completed. Check History tab for details.');
+    await Promise.all([loadDashboard(), loadHistory()]);
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+export function startDryRun() {
+  switchTab('dry-run');
+}
+
+export async function showCompaniesTab() {
+  switchTab('companies');
+  await loadCompaniesList();
+}

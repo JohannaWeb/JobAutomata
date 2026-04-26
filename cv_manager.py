@@ -9,8 +9,10 @@ import sys
 from urllib.parse import urlparse, parse_qs
 import mimetypes
 
-CV_DIR = Path('.')
-PROFILE_FILE = Path('profile.json')
+from job_automata.config import DATA_DIR, DEFAULT_PROFILE, PROJECT_ROOT
+
+CV_DIR = DATA_DIR
+PROFILE_FILE = DEFAULT_PROFILE
 
 class CVManagerHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -43,7 +45,7 @@ class CVManagerHandler(SimpleHTTPRequestHandler):
             self.send_error(404)
 
     def serve_html(self):
-        html_path = Path(__file__).parent / 'templates' / 'cv_manager.html'
+        html_path = PROJECT_ROOT / 'templates' / 'cv_manager.html'
         if not html_path.exists():
             self.send_error(404, 'HTML template not found')
             return

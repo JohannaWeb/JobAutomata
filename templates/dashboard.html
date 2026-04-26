@@ -3,1400 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Automata Control Center</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg-primary: #faf7f5;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #fef5f8;
-            --bg-hover: #fce7f3;
-            --text-primary: #2d1b24;
-            --text-secondary: #6b5866;
-            --accent: #f472b6;
-            --accent-dark: #ec4899;
-            --accent-light: #fbcfe8;
-            --success: #ec4899;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --border: #f3d9e8;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Header */
-        header {
-            background: var(--bg-secondary);
-            border-bottom: 2px solid var(--accent-light);
-            padding: 24px 40px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(244, 114, 182, 0.08);
-        }
-
-        .header-content {
-            max-width: 1800px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: var(--accent);
-            text-transform: uppercase;
-        }
-
-        .header-stats {
-            display: flex;
-            gap: 48px;
-            font-size: 12px;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 0 16px;
-            border-left: 1px solid var(--border);
-        }
-
-        .stat-item:first-child {
-            border-left: none;
-            padding-left: 0;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--accent);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Main container */
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 32px 40px;
-            position: relative;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 32px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 0;
-            overflow-x: auto;
-        }
-
-        .tabs::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .tabs::-webkit-scrollbar-thumb {
-            background: var(--accent-light);
-        }
-
-        .tab {
-            padding: 14px 24px;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            position: relative;
-            transition: all 0.2s ease;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            white-space: nowrap;
-        }
-
-        .tab:hover {
-            color: var(--accent);
-        }
-
-        .tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Dashboard Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-
-        /* Card */
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--accent);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.2s ease;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(244, 114, 182, 0.06);
-        }
-
-        .card:hover {
-            background: var(--bg-tertiary);
-            box-shadow: 0 8px 16px rgba(244, 114, 182, 0.12);
-            transform: translateY(-2px);
-        }
-
-        .card-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .card-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 12px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .card-subtitle {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 400;
-        }
-
-        /* Action Buttons */
-        .actions {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 11px 22px;
-            border: none;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 4px 12px rgba(244, 114, 182, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-dark);
-            box-shadow: 0 6px 20px rgba(244, 114, 182, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--accent);
-            border: 1.5px solid var(--accent-light);
-        }
-
-        .btn-secondary:hover {
-            background: var(--accent-light);
-            color: var(--accent-dark);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-        }
-
-        .btn-danger:hover {
-            opacity: 0.9;
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-        }
-
-        .btn-success:hover {
-            background: var(--accent-dark);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* Tables */
-        .table-container {
-            overflow-x: auto;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(244, 114, 182, 0.06);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        thead {
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            padding: 16px 20px;
-            text-align: left;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            font-weight: 700;
-            font-size: 10px;
-        }
-
-        td {
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-            transition: background 0.2s ease;
-        }
-
-        tbody tr:hover {
-            background: var(--accent-light);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Status badges */
-        .badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-
-        .badge-success {
-            background: var(--accent-light);
-            color: var(--accent-dark);
-        }
-
-        .badge-warning {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .badge-danger {
-            background: #fee2e2;
-            color: var(--danger);
-        }
-
-        .badge-info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge-pending {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        /* Progress bar */
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: var(--bg-tertiary);
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 12px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 2px;
-        }
-
-        /* Run Section */
-        .run-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(244, 114, 182, 0.06);
-        }
-
-        .run-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .run-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .run-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-        }
-
-        .detail-label {
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-        }
-
-        .detail-value {
-            color: var(--accent);
-            font-weight: 700;
-            font-size: 14px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Dry Run Preview */
-        .dry-run-preview {
-            background: linear-gradient(135deg, rgba(63, 185, 80, 0.05) 0%, rgba(31, 111, 235, 0.05) 100%);
-            border-left: 3px solid var(--accent-emerald);
-            padding: 24px;
-            border-radius: 12px;
-            margin: 24px 0;
-            border-top: 1px solid var(--border);
-            border-right: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .dry-run-header {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--accent-dark);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-
-        .preview-item {
-            padding: 12px;
-            background: var(--bg-secondary);
-            border-left: 3px solid var(--accent);
-            margin-bottom: 8px;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-
-        .preview-item-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
-
-        .preview-item-details {
-            color: var(--text-secondary);
-            margin-top: 4px;
-            font-size: 11px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Logs */
-        .logs-container {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            max-height: 400px;
-            overflow-y: auto;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .logs-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .logs-container::-webkit-scrollbar-thumb {
-            background: var(--accent-light);
-            border-radius: 3px;
-        }
-
-        .log-entry {
-            margin-bottom: 8px;
-            line-height: 1.6;
-        }
-
-        .log-time {
-            color: var(--accent);
-            margin-right: 10px;
-            font-weight: 600;
-        }
-
-        .log-level-info {
-            color: #0ea5e9;
-            font-weight: 600;
-        }
-
-        .log-level-success {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        .log-level-warning {
-            color: var(--warning);
-            font-weight: 600;
-        }
-
-        .log-level-error {
-            color: var(--danger);
-            font-weight: 600;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(45, 27, 36, 0.3);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            max-width: 500px;
-            width: 90%;
-            position: relative;
-            box-shadow: 0 10px 40px rgba(244, 114, 182, 0.15);
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: var(--text-primary);
-        }
-
-        .modal-body {
-            margin-bottom: 24px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .close-btn:hover {
-            color: var(--accent);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .header-stats {
-                width: 100%;
-                justify-content: space-around;
-                gap: 20px;
-            }
-
-            .stat-item {
-                border-left: none;
-                padding-left: 0;
-            }
-
-            .container {
-                padding: 24px 16px;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .tabs {
-                overflow-x: auto;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            th, td {
-                padding: 12px;
-            }
-
-            .run-details {
-                grid-template-columns: 1fr;
-            }
-
-            .btn {
-                padding: 10px 20px;
-                font-size: 11px;
-            }
-
-            .modal-content {
-                padding: 24px;
-            }
-        }
-
-        /* Loading animation */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-right-color: var(--accent-light);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        .spinner-small {
-            width: 12px;
-            height: 12px;
-            border-width: 2px;
-        }
-    </style>
+    <title>Job Automata</title>
+    <link href="/static/css/tailwind.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <header>
-        <div class="header-content">
-            <div class="logo">Job Automata</div>
-            <div class="header-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Applications</span>
-                    <span class="stat-value" id="totalApps">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Success Rate</span>
-                    <span class="stat-value" id="successRate">0%</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Last Run</span>
-                    <span class="stat-value" id="lastRun">—</span>
+<body class="bg-neutral-50">
+    <!-- Header -->
+    <header class="sticky top-0 z-40 border-b border-primary-200 bg-white shadow-subtle">
+        <div class="mx-auto max-w-7xl px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="font-display text-2xl font-bold text-primary-600">Job Automata</h1>
+                <div class="flex gap-8 text-sm">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs uppercase tracking-wide text-neutral-500">Applications</span>
+                        <span class="font-mono font-bold text-primary-600" id="headerApps">0</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs uppercase tracking-wide text-neutral-500">Success Rate</span>
+                        <span class="font-mono font-bold text-primary-600" id="headerRate">0%</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs uppercase tracking-wide text-neutral-500">Last Run</span>
+                        <span class="font-mono font-bold text-primary-600" id="headerLastRun">—</span>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <div class="container">
+    <!-- Main Content -->
+    <main class="mx-auto max-w-7xl px-6 py-12">
         <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
-            <button class="tab" onclick="switchTab('dry-run')">Dry Run</button>
-            <button class="tab" onclick="switchTab('scraper')">Scraper Preview</button>
-            <button class="tab" onclick="switchTab('cv-manager')">CV Manager</button>
-            <button class="tab" onclick="switchTab('companies')">Companies</button>
-            <button class="tab" onclick="switchTab('history')">History</button>
+        <div class="mb-8 border-b border-primary-200">
+            <nav class="flex gap-1 -mb-px">
+                <button data-tab="dashboard" onclick="window.switchTab('dashboard', this)" class="tab-btn active px-4 py-3 border-b-2 border-primary-600 font-semibold text-sm text-primary-600">Dashboard</button>
+                <button data-tab="dry-run" onclick="window.switchTab('dry-run', this)" class="tab-btn px-4 py-3 border-b-2 border-transparent font-semibold text-sm text-neutral-600 hover:text-neutral-900">Dry Run</button>
+                <button data-tab="companies" onclick="window.switchTab('companies', this)" class="tab-btn px-4 py-3 border-b-2 border-transparent font-semibold text-sm text-neutral-600 hover:text-neutral-900">Companies</button>
+                <button data-tab="cv-manager" onclick="window.switchTab('cv-manager', this)" class="tab-btn px-4 py-3 border-b-2 border-transparent font-semibold text-sm text-neutral-600 hover:text-neutral-900">CV Manager</button>
+                <button data-tab="history" onclick="window.switchTab('history', this)" class="tab-btn px-4 py-3 border-b-2 border-transparent font-semibold text-sm text-neutral-600 hover:text-neutral-900">History</button>
+            </nav>
         </div>
 
-        <!-- DASHBOARD TAB -->
-        <div id="dashboard" class="tab-content active">
-            <div class="actions">
-                <button class="btn btn-primary" onclick="startDryRun()">Simulate Workflow</button>
-                <button class="btn btn-primary" onclick="startFullRun()">Run Full Automation</button>
-                <button class="btn btn-secondary" onclick="startScraping()">Scrape URLs</button>
-                <button class="btn btn-secondary" onclick="showStats()">View Statistics</button>
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content space-y-6">
+            <div class="flex gap-3">
+                <button onclick="window.startDryRun()" class="btn btn-primary">Simulate Workflow</button>
+                <button onclick="window.startFullRun()" class="btn btn-primary">Run Full Automation</button>
+                <button onclick="window.showCompaniesTab()" class="btn btn-secondary">Select Companies</button>
             </div>
 
-            <div class="dashboard-grid">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <!-- Metric Cards -->
                 <div class="card">
-                    <div class="card-title">Total Applications</div>
-                    <div class="card-value" id="dashTotalApps">0</div>
-                    <div class="card-subtitle">Across all companies</div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Successful Applies</div>
-                    <div class="card-value" id="dashSuccessful">0</div>
-                    <div class="card-subtitle">Successfully submitted</div>
+                    <div class="text-xs uppercase tracking-wide text-neutral-500">Total Applications</div>
+                    <div class="mt-2 font-mono text-4xl font-bold text-primary-600" id="cardTotalApps">0</div>
+                    <div class="mt-1 text-sm text-neutral-600">Across all runs</div>
                 </div>
 
                 <div class="card">
-                    <div class="card-title">Companies Targeted</div>
-                    <div class="card-value" id="dashCompanies">0</div>
-                    <div class="card-subtitle">From CSV file</div>
+                    <div class="text-xs uppercase tracking-wide text-neutral-500">Successful</div>
+                    <div class="mt-2 font-mono text-4xl font-bold text-emerald-600" id="cardSuccessful">0</div>
+                    <div class="mt-1 text-sm text-neutral-600">Successfully submitted</div>
                 </div>
 
                 <div class="card">
-                    <div class="card-title">Current Status</div>
-                    <div class="card-value" style="font-size: 18px;" id="dashStatus">Idle</div>
-                    <div class="card-subtitle">Ready to run</div>
-                </div>
-            </div>
-
-            <div id="runHistory">
-                <!-- Recent runs will be populated here -->
-            </div>
-        </div>
-
-        <!-- DRY RUN TAB -->
-        <div id="dry-run" class="tab-content">
-            <div class="run-section">
-                <div class="run-header">
-                    <div class="run-title">Dry Run Simulation</div>
-                    <button class="btn btn-primary" onclick="executeDryRun()">Execute Simulation</button>
+                    <div class="text-xs uppercase tracking-wide text-neutral-500">Companies</div>
+                    <div class="mt-2 font-mono text-4xl font-bold text-blue-600" id="cardCompanies">0</div>
+                    <div class="mt-1 text-sm text-neutral-600">In current dataset</div>
                 </div>
 
-                <div class="run-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Mode</span>
-                        <span class="detail-value">Preview Only</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Companies to Process</span>
-                        <span class="detail-value" id="dryRunCompanies">0</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Actions Simulated</span>
-                        <span class="detail-value" id="dryRunActions">0</span>
-                    </div>
-                </div>
-
-                <div class="progress-bar">
-                    <div class="progress-fill" id="dryRunProgress"></div>
-                </div>
-
-                <div id="dryRunPreview" style="margin-top: 20px;">
-                    <!-- Preview will be populated here -->
-                </div>
-            </div>
-
-            <div class="run-section">
-                <div class="run-title">Simulation Log</div>
-                <div class="logs-container" id="dryRunLogs">
-                    <div class="log-entry" style="color: var(--text-secondary);">
-                        Logs will appear here when you run a dry simulation...
-                    </div>
+                <div class="card">
+                    <div class="text-xs uppercase tracking-wide text-neutral-500">Status</div>
+                    <div class="mt-2 text-2xl font-bold text-neutral-900" id="cardStatus">Idle</div>
+                    <div class="mt-1 text-sm text-neutral-600">Ready to run</div>
                 </div>
             </div>
         </div>
 
-        <!-- SCRAPER PREVIEW TAB -->
-        <div id="scraper" class="tab-content">
-            <div class="actions">
-                <button class="btn btn-primary" onclick="startScraping()">Start Scraping</button>
-                <button class="btn btn-secondary" onclick="exportScrapeData()">Export CSV</button>
+        <!-- Dry Run Tab -->
+        <div id="dry-run" class="tab-content hidden space-y-6">
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold">Dry Run Simulation</h2>
+                    <button onclick="window.executeDryRun()" class="btn btn-primary">Execute</button>
+                </div>
+                <div class="mt-4 grid grid-cols-3 gap-4">
+                    <div>
+                        <div class="text-xs uppercase tracking-wide text-neutral-500">Companies</div>
+                        <div class="mt-1 font-mono font-bold text-neutral-900" id="dryRunCompanies">0</div>
+                    </div>
+                    <div>
+                        <div class="text-xs uppercase tracking-wide text-neutral-500">Actions</div>
+                        <div class="mt-1 font-mono font-bold text-neutral-900" id="dryRunActions">0</div>
+                    </div>
+                    <div>
+                        <div class="text-xs uppercase tracking-wide text-neutral-500">Status</div>
+                        <div class="mt-1 font-mono font-bold text-neutral-900">Simulated</div>
+                    </div>
+                </div>
+                <div class="mt-4 h-1 overflow-hidden rounded-full bg-neutral-200">
+                    <div id="dryRunProgress" class="h-full w-0 bg-gradient-to-r from-primary-400 to-primary-600 transition-all duration-300"></div>
+                </div>
             </div>
 
-            <div class="run-section">
-                <div class="run-title">Scraped URLs & Company Data</div>
-                <div class="progress-bar" id="scrapeProgress">
-                    <div class="progress-fill" id="scrapeProgressFill"></div>
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-4">Simulation Results</h2>
+                <div id="dryRunResults" class="space-y-2 max-h-96 overflow-y-auto">
+                    <div class="text-sm text-neutral-500 text-center py-8">Run a simulation to see results</div>
                 </div>
-                <div class="table-container" style="margin-top: 20px;">
-                    <table id="scrapeTable">
+            </div>
+        </div>
+
+        <!-- Companies Tab -->
+        <div id="companies" class="tab-content hidden space-y-6">
+            <div class="flex gap-3">
+                <button onclick="window.companies.loadCompaniesList()" class="btn btn-secondary">Refresh</button>
+                <button onclick="window.companies.showAddCompanyForm()" class="btn btn-primary">Add Company</button>
+            </div>
+
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-4">Select Dataset</h2>
+                <div id="companiesFiles" class="space-y-2">
+                    <div class="text-sm text-neutral-500 text-center py-8">Loading...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-4">Companies (<span id="companiesCount">0</span>)</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
                         <thead>
-                            <tr>
-                                <th>Company</th>
-                                <th>Category</th>
-                                <th>Careers URL</th>
-                                <th>Job Board</th>
-                                <th>Status</th>
+                            <tr class="border-b border-neutral-200">
+                                <th class="table-header text-left">Name</th>
+                                <th class="table-header text-left">URL</th>
+                                <th class="table-header text-left">Category</th>
+                                <th class="table-header text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="scrapeTableBody">
-                            <tr>
-                                <td colspan="5" style="text-align: center; color: var(--text-secondary);">
-                                    No data yet. Start scraping to populate results.
-                                </td>
+                        <tbody id="companiesTable">
+                            <tr><td colspan="4" class="table-cell text-center text-neutral-500">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button onclick="window.companies.saveAllCompanies()" class="mt-4 btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+
+        <!-- CV Manager Tab -->
+        <div id="cv-manager" class="tab-content hidden space-y-6">
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-4">Upload CV</h2>
+                <div class="flex gap-3">
+                    <input type="file" id="cvFileInput" accept=".md" class="input flex-1" placeholder="Select .md file">
+                    <button onclick="window.cvManager.uploadCV()" class="btn btn-primary">Upload</button>
+                </div>
+                <div id="uploadStatus" class="mt-2"></div>
+            </div>
+
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-4">Select CV</h2>
+                <div id="cvsList" class="space-y-2">
+                    <div class="text-sm text-neutral-500 text-center py-8">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history" class="tab-content hidden space-y-6">
+            <div class="flex gap-3">
+                <button onclick="window.loadHistory()" class="btn btn-secondary">Refresh</button>
+                <button onclick="window.clearHistory()" class="btn btn-danger">Clear History</button>
+            </div>
+
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-4">Run History</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-neutral-200">
+                                <th class="table-header">Date</th>
+                                <th class="table-header">Type</th>
+                                <th class="table-header">Companies</th>
+                                <th class="table-header">Successful</th>
+                                <th class="table-header">Status</th>
                             </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            <tr><td colspan="5" class="table-cell text-center text-neutral-500">No history yet</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+    </main>
 
-        <!-- CV MANAGER TAB -->
-        <div id="cv-manager" class="tab-content">
-            <div class="actions">
-                <button class="btn btn-secondary" onclick="loadCVList()">Refresh</button>
+    <!-- Add Company Modal -->
+    <div id="addCompanyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+            <h2 class="text-xl font-bold mb-4">Add Company</h2>
+            <div class="space-y-3 mb-6">
+                <input type="text" id="companyName" placeholder="Company name" class="input">
+                <input type="text" id="companyUrl" placeholder="URL" class="input">
+                <input type="text" id="companyCategory" placeholder="Category" class="input">
             </div>
-
-            <div class="run-section">
-                <div class="run-title">Upload New CV</div>
-                <div style="margin-top: 20px; display: flex; gap: 12px; align-items: center;">
-                    <input type="file" id="cvFileInput" accept=".md" style="flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary);">
-                    <button class="btn btn-primary" onclick="uploadCV()">Upload CV</button>
-                </div>
-                <div id="uploadStatus" style="margin-top: 12px;"></div>
-            </div>
-
-            <div class="run-section">
-                <div class="run-title">Select CV</div>
-                <div id="cvManagerContent" style="margin-top: 20px;">
-                    <div style="color: var(--text-secondary); text-align: center; padding: 40px;">
-                        <div class="spinner" style="margin: 0 auto 16px;"></div>
-                        Loading CVs...
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- COMPANIES TAB -->
-        <div id="companies" class="tab-content">
-            <div class="actions">
-                <button class="btn btn-secondary" onclick="loadCompaniesList()">Refresh</button>
-                <button class="btn btn-secondary" onclick="showAddCompanyForm()">Add Company</button>
-            </div>
-
-            <div class="run-section">
-                <div class="run-title">Select Companies Dataset</div>
-                <div id="companiesFileContent" style="margin-top: 20px;">
-                    <div style="color: var(--text-secondary); text-align: center; padding: 40px;">
-                        <div class="spinner" style="margin: 0 auto 16px;"></div>
-                        Loading companies files...
-                    </div>
-                </div>
-            </div>
-
-            <div class="run-section">
-                <div class="run-title">Edit Companies (<span id="companiesCount">0</span>)</div>
-                <div id="companiesTableContent" style="margin-top: 20px;">
-                    <div style="color: var(--text-secondary); text-align: center; padding: 40px;">Loading...</div>
-                </div>
-            </div>
-
-            <div id="addCompanyModal" class="modal">
-                <div class="modal-content">
-                    <button class="close-btn" onclick="closeAddCompanyForm()">×</button>
-                    <div class="modal-title">Add Company</div>
-                    <div class="modal-body">
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
-                            <input type="text" id="companyName" placeholder="Company name" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary);">
-                            <input type="text" id="companyUrl" placeholder="URL" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary);">
-                            <input type="text" id="companyCategory" placeholder="Category" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary);">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="closeAddCompanyForm()">Cancel</button>
-                        <button class="btn btn-primary" onclick="saveNewCompany()">Add</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- HISTORY TAB -->
-        <div id="history" class="tab-content">
-            <div class="actions">
-                <button class="btn btn-secondary" onclick="loadHistory()">Refresh</button>
-                <button class="btn btn-danger" onclick="clearHistory()">Clear History</button>
-            </div>
-
-            <div class="run-section">
-                <div class="run-title">Run History</div>
-                <div class="table-container" style="margin-top: 20px;">
-                    <table id="historyTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Companies</th>
-                                <th>Successful</th>
-                                <th>Duration</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTableBody">
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--text-secondary);">
-                                    No history yet.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="flex gap-3 justify-end">
+                <button onclick="window.companies.closeAddCompanyForm()" class="btn btn-secondary">Cancel</button>
+                <button onclick="window.companies.saveNewCompany()" class="btn btn-primary">Add</button>
             </div>
         </div>
     </div>
 
     <!-- Loading Modal -->
-    <div id="loadingModal" class="modal">
-        <div class="modal-content" style="border: none; background: transparent;">
-            <div style="text-align: center;">
-                <div class="spinner" style="margin: 0 auto 16px; border-width: 3px;"></div>
-                <div style="color: var(--text-primary); font-size: 14px;">Processing...</div>
-            </div>
+    <div id="loadingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div class="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center gap-4">
+            <div class="spinner"></div>
+            <p class="text-neutral-600">Processing...</p>
         </div>
     </div>
 
-    <script>
-        // Tab switching
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        // Load initial data
-        async function loadDashboard() {
-            try {
-                const res = await fetch('/api/stats');
-                const data = await res.json();
-                document.getElementById('totalApps').textContent = data.total_applications || 0;
-                document.getElementById('successRate').textContent = data.success_rate + '%' || '0%';
-                document.getElementById('lastRun').textContent = data.last_run || '—';
-                document.getElementById('dashTotalApps').textContent = data.total_applications || 0;
-                document.getElementById('dashSuccessful').textContent = data.successful_applies || 0;
-                document.getElementById('dashCompanies').textContent = data.companies || 0;
-            } catch (err) {
-                console.error('Failed to load dashboard:', err);
-            }
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingModal').classList.toggle('active', show);
-        }
-
-        async function startDryRun() {
-            switchTab('dry-run');
-        }
-
-        async function executeDryRun() {
-            showLoading(true);
-            try {
-                const res = await fetch('/api/dry-run', { method: 'POST' });
-                const data = await res.json();
-
-                // Update preview
-                const preview = document.getElementById('dryRunPreview');
-                preview.innerHTML = '<div class="dry-run-header">✓ Simulation Results</div>';
-
-                data.results.forEach(result => {
-                    const item = document.createElement('div');
-                    item.className = 'preview-item';
-                    item.innerHTML = `
-                        <div class="preview-item-title">${result.company}</div>
-                        <div class="preview-item-details">
-                            Action: ${result.action} • Status: ${result.status}
-                        </div>
-                    `;
-                    preview.appendChild(item);
-                });
-
-                // Update logs
-                const logs = document.getElementById('dryRunLogs');
-                logs.innerHTML = '';
-                data.logs.forEach(log => {
-                    const entry = document.createElement('div');
-                    entry.className = 'log-entry';
-                    entry.innerHTML = `
-                        <span class="log-time">${log.time}</span>
-                        <span class="log-level-${log.level}">[${log.level.toUpperCase()}]</span>
-                        ${log.message}
-                    `;
-                    logs.appendChild(entry);
-                });
-            } catch (err) {
-                alert('Error running dry simulation: ' + err.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function startFullRun() {
-            if (confirm('Start full automation workflow? This will submit actual applications.')) {
-                showLoading(true);
-                try {
-                    const res = await fetch('/api/run-full', { method: 'POST' });
-                    const data = await res.json();
-                    alert('Workflow started. Check History tab for updates.');
-                    loadDashboard();
-                } catch (err) {
-                    alert('Error starting workflow: ' + err.message);
-                } finally {
-                    showLoading(false);
-                }
-            }
-        }
-
-        async function startScraping() {
-            switchTab('scraper');
-            showLoading(true);
-            try {
-                const res = await fetch('/api/scrape', { method: 'POST' });
-                const data = await res.json();
-
-                // Update table
-                const tbody = document.getElementById('scrapeTableBody');
-                tbody.innerHTML = '';
-                data.companies.forEach(company => {
-                    const row = document.createElement('tr');
-                    const status = company.careers_url ? 'success' : 'pending';
-                    row.innerHTML = `
-                        <td>${company.name}</td>
-                        <td>${company.category}</td>
-                        <td><a href="${company.careers_url}" target="_blank" style="color: var(--accent-primary);">View</a></td>
-                        <td>${company.job_board || '—'}</td>
-                        <td><span class="badge badge-${status}">${status}</span></td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            } catch (err) {
-                alert('Error scraping: ' + err.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function exportScrapeData() {
-            alert('Export functionality coming soon!');
-        }
-
-        async function loadCVList() {
-            try {
-                const res = await fetch('/api/cvs');
-                const data = await res.json();
-                const content = document.getElementById('cvManagerContent');
-
-                if (!data.cvs || data.cvs.length === 0) {
-                    content.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 40px;">No CVs found</div>';
-                    return;
-                }
-
-                let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
-                data.cvs.forEach(cv => {
-                    const isCurrent = cv === data.current;
-                    html += `
-                        <div style="padding: 16px; background: ${isCurrent ? 'var(--accent-light)' : 'var(--bg-tertiary)'}; border: 1px solid ${isCurrent ? 'var(--accent)' : 'var(--border)'}; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-weight: 700; color: var(--text-primary);">${cv}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${isCurrent ? 'Currently in use' : 'Available'}</div>
-                            </div>
-                            ${!isCurrent ? `<button class="btn btn-primary" style="padding: 8px 16px; font-size: 11px;" onclick="selectCV('${cv}')">Select</button>` : '<span style="color: var(--accent); font-weight: 700;">Active</span>'}
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                content.innerHTML = html;
-            } catch (err) {
-                console.error('Failed to load CVs:', err);
-                document.getElementById('cvManagerContent').innerHTML = '<div style="color: var(--danger); padding: 20px;">Error loading CVs</div>';
-            }
-        }
-
-        async function uploadCV() {
-            const fileInput = document.getElementById('cvFileInput');
-            const file = fileInput.files[0];
-            const statusDiv = document.getElementById('uploadStatus');
-
-            if (!file) {
-                statusDiv.innerHTML = '<div style="color: var(--danger); padding: 12px;">Please select a file</div>';
-                return;
-            }
-
-            if (!file.name.endsWith('.md')) {
-                statusDiv.innerHTML = '<div style="color: var(--danger); padding: 12px;">Only .md files allowed</div>';
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                statusDiv.innerHTML = '<div style="color: var(--accent); padding: 12px;">Uploading...</div>';
-                const res = await fetch('/api/cvs/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    statusDiv.innerHTML = `<div style="color: var(--accent); padding: 12px;">✓ CV uploaded and set as active: ${data.filename}</div>`;
-                    fileInput.value = '';
-                    setTimeout(() => loadCVList(), 500);
-                } else {
-                    statusDiv.innerHTML = `<div style="color: var(--danger); padding: 12px;">Error: ${data.error}</div>`;
-                }
-            } catch (err) {
-                statusDiv.innerHTML = `<div style="color: var(--danger); padding: 12px;">Error: ${err.message}</div>`;
-            }
-        }
-
-        async function selectCV(cvName) {
-            try {
-                const res = await fetch('/api/cvs/select', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cv: cvName })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    loadCVList();
-                }
-            } catch (err) {
-                alert('Error selecting CV: ' + err.message);
-            }
-        }
-
-        let companiesData = [];
-
-        async function loadCompaniesList() {
-            await loadCompaniesFiles();
-            await loadCompaniesTable();
-        }
-
-        async function loadCompaniesFiles() {
-            try {
-                const res = await fetch('/api/companies');
-                const data = await res.json();
-                const content = document.getElementById('companiesFileContent');
-
-                if (!data.files || data.files.length === 0) {
-                    content.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 40px;">No companies CSV files found</div>';
-                    return;
-                }
-
-                let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
-                data.files.forEach(file => {
-                    const isCurrent = file.current;
-                    const sizeKB = (file.size / 1024).toFixed(1);
-                    html += `
-                        <div style="padding: 16px; background: ${isCurrent ? 'var(--accent-light)' : 'var(--bg-tertiary)'}; border: 1px solid ${isCurrent ? 'var(--accent)' : 'var(--border)'}; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-weight: 700; color: var(--text-primary);">${file.name}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${sizeKB} KB ${isCurrent ? '• Currently in use' : '• Available'}</div>
-                            </div>
-                            ${!isCurrent ? `<button class="btn btn-primary" style="padding: 8px 16px; font-size: 11px;" onclick="selectCompanies('${file.name}')">Select</button>` : '<span style="color: var(--accent); font-weight: 700;">Active</span>'}
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                content.innerHTML = html;
-            } catch (err) {
-                console.error('Failed to load companies:', err);
-                document.getElementById('companiesFileContent').innerHTML = '<div style="color: var(--danger); padding: 20px;">Error loading companies</div>';
-            }
-        }
-
-        async function loadCompaniesTable() {
-            try {
-                const res = await fetch('/api/companies/view');
-                const data = await res.json();
-                companiesData = data.companies;
-                document.getElementById('companiesCount').textContent = data.count;
-
-                const content = document.getElementById('companiesTableContent');
-                if (!companiesData || companiesData.length === 0) {
-                    content.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 20px;">No companies in current file</div>';
-                    return;
-                }
-
-                let html = '<div class="table-container"><table>';
-                const keys = Object.keys(companiesData[0]);
-                html += '<thead><tr>';
-                keys.forEach(key => {
-                    html += `<th>${key}</th>`;
-                });
-                html += '<th>Delete</th></tr></thead><tbody>';
-
-                companiesData.forEach((company, rowIdx) => {
-                    html += '<tr data-row="' + rowIdx + '">';
-                    keys.forEach(key => {
-                        const value = company[key] || '';
-                        html += `<td data-row="${rowIdx}" data-field="${key}" onclick="clickCell(this)" style="cursor: pointer; padding: 12px; border-bottom: 1px solid var(--border);">
-                            <span class="display">${value}</span>
-                            <input class="edit" type="text" value="${value}" style="display:none; width:100%; padding: 6px; border: 1px solid var(--accent); border-radius: 4px;" />
-                        </td>`;
-                    });
-                    html += `<td style="padding: 12px;"><button class="btn btn-danger" style="padding: 4px 8px; font-size: 10px;" onclick="deleteCompany(${rowIdx})">X</button></td></tr>`;
-                });
-                html += '</tbody></table></div>';
-                html += '<div style="margin-top: 16px;"><button class="btn btn-primary" onclick="saveAllCompanies()">Save Changes</button></div>';
-                content.innerHTML = html;
-            } catch (err) {
-                console.error('Failed to load companies table:', err);
-                document.getElementById('companiesTableContent').innerHTML = '<div style="color: var(--danger); padding: 20px;">Error loading companies</div>';
-            }
-        }
-
-        function clickCell(cell) {
-            const rowIdx = parseInt(cell.dataset.row);
-            const field = cell.dataset.field;
-
-            const display = cell.querySelector('.display');
-            const input = cell.querySelector('.edit');
-
-            display.style.display = 'none';
-            input.style.display = 'block';
-            input.focus();
-            input.select();
-
-            function finish() {
-                companiesData[rowIdx][field] = input.value;
-                display.textContent = input.value;
-                display.style.display = 'inline';
-                input.style.display = 'none';
-                input.onblur = null;
-                input.onkeydown = null;
-            }
-
-            input.onblur = () => finish();
-            input.onkeydown = (e) => {
-                if (e.key === 'Enter') finish();
-                if (e.key === 'Escape') {
-                    input.value = companiesData[rowIdx][field];
-                    finish();
-                }
-            };
-        }
-
-        async function saveAllCompanies() {
-            try {
-                const res = await fetch('/api/companies/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ companies: companiesData })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert(`✓ Saved ${data.count} companies`);
-                }
-            } catch (err) {
-                alert('Error saving: ' + err.message);
-            }
-        }
-
-        function showAddCompanyForm() {
-            document.getElementById('addCompanyModal').classList.add('active');
-        }
-
-        function closeAddCompanyForm() {
-            document.getElementById('addCompanyModal').classList.remove('active');
-            document.getElementById('companyName').value = '';
-            document.getElementById('companyUrl').value = '';
-            document.getElementById('companyCategory').value = '';
-        }
-
-        async function saveNewCompany() {
-            const name = document.getElementById('companyName').value;
-            const url = document.getElementById('companyUrl').value;
-            const category = document.getElementById('companyCategory').value;
-
-            if (!name) {
-                alert('Company name required');
-                return;
-            }
-
-            const newCompany = { name, url: url || '', category: category || '' };
-            companiesData.push(newCompany);
-
-            try {
-                const res = await fetch('/api/companies/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ companies: companiesData })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    closeAddCompanyForm();
-                    await loadCompaniesTable();
-                }
-            } catch (err) {
-                alert('Error saving company: ' + err.message);
-            }
-        }
-
-        function deleteCompany(idx) {
-            if (confirm('Delete this company?')) {
-                companiesData.splice(idx, 1);
-                loadCompaniesTable();
-            }
-        }
-
-        async function selectCompanies(fileName) {
-            try {
-                const res = await fetch('/api/companies/select', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file: fileName })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    loadCompaniesList();
-                    alert(`Selected ${fileName} (${data.count} companies)`);
-                }
-            } catch (err) {
-                alert('Error selecting companies: ' + err.message);
-            }
-        }
-
-        async function loadHistory() {
-            try {
-                const res = await fetch('/api/history');
-                const data = await res.json();
-                const tbody = document.getElementById('historyTableBody');
-                tbody.innerHTML = '';
-
-                if (data.runs && data.runs.length > 0) {
-                    data.runs.forEach(run => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${run.date}</td>
-                            <td>${run.type}</td>
-                            <td>${run.companies}</td>
-                            <td>${run.successful}</td>
-                            <td>${run.duration}</td>
-                            <td><span class="badge badge-${run.status}">${run.status}</span></td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                }
-            } catch (err) {
-                console.error('Failed to load history:', err);
-            }
-        }
-
-        function clearHistory() {
-            if (confirm('Clear all run history?')) {
-                fetch('/api/history', { method: 'DELETE' })
-                    .then(() => loadHistory())
-                    .catch(err => alert('Error clearing history: ' + err.message));
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDashboard();
-            loadHistory();
-            loadCVList();
-            loadCompaniesList();
-        });
-    </script>
+    <script type="module" src="/static/js/main.js"></script>
 </body>
 </html>
