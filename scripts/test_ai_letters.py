@@ -24,11 +24,12 @@ class Company:
 
 def load_profile():
     """Load profile.json"""
-    if Path('profile.json').exists():
-        with open('profile.json', 'r') as f:
+    profile_path = Path('data/profile.json')
+    if profile_path.exists():
+        with open(profile_path, 'r') as f:
             return json.load(f)
     else:
-        print("❌ profile.json not found. Run: make init")
+        print("❌ data/profile.json not found. Run: make init")
         sys.exit(1)
 
 

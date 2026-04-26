@@ -6,8 +6,7 @@ from pathlib import Path
 import json
 import os
 import sys
-from urllib.parse import urlparse, parse_qs
-import mimetypes
+from urllib.parse import urlparse
 
 from job_automata.config import DATA_DIR, DEFAULT_PROFILE, PROJECT_ROOT
 

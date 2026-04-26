@@ -307,7 +307,7 @@ def main() -> int:
 
     if not email or not password:
         logger.error("LinkedIn credentials required via --email/LINKEDIN_EMAIL and LINKEDIN_PASSWORD")
-        logger.info("Usage: LINKEDIN_PASSWORD=... python linkedin_hunter.py --email your@email.com")
+        logger.info("Usage: LINKEDIN_PASSWORD=... python -m job_automata.infrastructure.linkedin.hunter --email your@email.com")
         return 1
 
     hunter = LinkedInHunter(email, password, headless=args.headless)

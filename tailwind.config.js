@@ -2,6 +2,7 @@
 export default {
   content: [
     "./templates/**/*.{html,js}",
+    "./static/js/**/*.js",
     "./src/**/*.{html,js}",
   ],
   theme: {

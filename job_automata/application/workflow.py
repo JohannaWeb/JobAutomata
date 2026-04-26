@@ -9,7 +9,6 @@ import sys
 import time
 import json
 import os
-from pathlib import Path
 import logging
 
 from job_automata.config import APPLICATIONS_DIR, DEFAULT_COMPANIES, DEFAULT_TARGET_COMPANIES
@@ -120,14 +119,14 @@ def build_workflow(
     if mode in ['init', 'full']:
         o.step(
             'Initialize Profile',
-            [sys.executable, 'auto_apply.py', '--init'],
+            [sys.executable, '-m', 'job_automata.application.auto_apply', '--init'],
             'Creates data/profile.json and data/companies.csv templates'
         )
 
     if mode in ['scrape', 'full']:
         o.step(
             'Scrape Company URLs',
-            [sys.executable, 'url_scraper.py', '--markdown', markdown_file, '--csv', csv_file],
+            [sys.executable, '-m', 'job_automata.infrastructure.scraping.url_scraper', '--markdown', markdown_file, '--csv', csv_file],
             'Finds careers pages and job board platforms'
         )
 
@@ -136,7 +135,7 @@ def build_workflow(
             o.step(
                 'Hunt LinkedIn Managers',
                 [
-                    sys.executable, 'linkedin_hunter.py',
+                    sys.executable, '-m', 'job_automata.infrastructure.linkedin.hunter',
                     '--email', linkedin_email,
                     '--csv', csv_file
                 ],
@@ -148,14 +147,14 @@ def build_workflow(
     if mode in ['test', 'full']:
         o.step(
             'Test Dry Run',
-            [sys.executable, 'auto_apply.py', '--dry-run', '--csv', csv_file],
+            [sys.executable, '-m', 'job_automata.application.auto_apply', '--dry-run', '--csv', csv_file],
             'Test applications without submitting'
         )
 
     if mode in ['apply', 'full']:
         o.step(
             'Auto-Apply to Companies',
-            [sys.executable, 'auto_apply.py', '--csv', csv_file],
+            [sys.executable, '-m', 'job_automata.application.auto_apply', '--csv', csv_file],
             'Submit applications to all companies'
         )
 
@@ -171,19 +170,19 @@ def main():
         epilog="""
 Examples:
   # Initialize everything
-  python run.py --mode init
+  python -m job_automata.application.workflow --mode init
 
   # Scrape URLs only
-  python run.py --mode scrape
+  python -m job_automata.application.workflow --mode scrape
 
   # Run dry test
-  python run.py --mode test
+  python -m job_automata.application.workflow --mode test
 
   # Full workflow (init - scrape - hunt - test - apply)
-  LINKEDIN_PASSWORD=... python run.py --mode hunt --linkedin-email your@email.com
+  LINKEDIN_PASSWORD=... python -m job_automata.application.workflow --mode hunt --linkedin-email your@email.com
 
   # Open apply flows for supported job boards
-  python run.py --mode apply
+  python -m job_automata.application.workflow --mode apply
         """
     )
 

@@ -1,6 +1,7 @@
 import unittest
 
-from auto_apply import JobApplicationAutomata, JobSearchCriteria
+from job_automata.application.auto_apply import JobApplicationAutomata
+from job_automata.domain import JobSearchCriteria
 
 
 class FakeJob:
