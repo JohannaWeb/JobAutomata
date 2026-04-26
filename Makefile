@@ -18,7 +18,8 @@ help:
 	@echo "Testing & Preview:"
 	@echo " make test-scraper Test scraper on single company"
 	@echo " make test-letters Generate and preview cover letters"
-	@echo " make cv-ui Launch CV manager (http://localhost:5000)"
+	@echo " make dashboard Launch modern dashboard with dry run (http://localhost:5000)"
+	@echo " make cv-ui Launch legacy CV manager (http://localhost:5000)"
 	@echo ""
 	@echo "Advanced:"
 	@echo " make hunt Find LinkedIn managers (requires credentials)"
@@ -135,11 +136,25 @@ clean-all: clean
 commands:
 	@make help
 
-# CV Manager UI
+# CV Manager UI (local dev) - deprecated, use dashboard instead
 cv-ui:
 	@echo "Starting CV Manager UI..."
-	@. venv/bin/activate 2>/dev/null || true && python3 cv_manager.py
-	@echo " CV Manager UI running at http://localhost:5000"
+	@python3 cv_manager.py
+
+# CV Manager UI (production ready) - deprecated, use dashboard instead
+cv-ui-prod:
+	@echo "Starting CV Manager (production mode)..."
+	@PORT=5000 python3 cv_manager.py
+
+# Dashboard UI (new - with dry run and scraper preview)
+dashboard:
+	@echo "Starting Job Automata Dashboard..."
+	@. venv/bin/activate 2>/dev/null || true && python3 web_app.py
+
+# Dashboard UI (production mode)
+dashboard-prod:
+	@echo "Starting Job Automata Dashboard (production)..."
+	@PORT=5000 . venv/bin/activate 2>/dev/null || true && python3 web_app.py
 
 # Setup and run (all-in-one)
 setup-and-run: venv init scrape-300 test-letters
