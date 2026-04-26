@@ -9,6 +9,7 @@ import json
 import csv
 import os
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
@@ -16,6 +17,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 import logging
 from werkzeug.utils import secure_filename
+from prometheus_client import Counter, Histogram, Gauge, generate_letters
 
 from job_automata.config import (
     APPLICATIONS_DIR,
@@ -32,6 +34,34 @@ app = Flask(
     template_folder=str(PROJECT_ROOT / 'templates'),
     static_folder=str(PROJECT_ROOT / 'static'),
     static_url_path='/static',
+)
+
+# Prometheus metrics
+REQUEST_COUNT = Counter(
+    'http_requests_total',
+    'Total HTTP requests',
+    ['method', 'endpoint', 'status']
+)
+REQUEST_LATENCY = Histogram(
+    'http_request_duration_seconds',
+    'HTTP request latency',
+    ['method', 'endpoint']
+)
+ACTIVE_REQUESTS = Gauge(
+    'http_requests_active',
+    'Number of active HTTP requests'
+)
+APPLICATIONS_TOTAL = Gauge(
+    'jobautomata_applications_total',
+    'Total job applications'
+)
+APPLICATIONS_SUCCESSFUL = Gauge(
+    'jobautomata_applications_successful',
+    'Successful job applications'
+)
+SUCCESS_RATE = Gauge(
+    'jobautomata_success_rate',
+    'Application success rate percentage'
 )
 
 # Database configuration
@@ -75,6 +105,41 @@ def require_local_or_token():
     return jsonify({
         'error': 'Dashboard is local-only unless DASHBOARD_TOKEN is set'
     }), 403
+
+
+@app.before_request
+def track_request_start():
+    """Track request start for metrics."""
+    request._start_time = time.time()
+    ACTIVE_REQUESTS.inc()
+
+
+@app.after_request
+def track_request_end(response):
+    """Track request metrics."""
+    ACTIVE_REQUESTS.dec()
+
+    if hasattr(request, '_start_time'):
+        latency = time.time() - request._start_time
+        endpoint = request.endpoint or 'unknown'
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=endpoint,
+            status=response.status_code
+        ).inc()
+        REQUEST_LATENCY.labels(
+            method=request.method,
+            endpoint=endpoint
+        ).observe(latency)
+
+    return response
+
+
+@app.route('/metrics')
+def metrics():
+    """Prometheus metrics endpoint."""
+    from flask import Response
+    return Response(generate_letters(), mimetype='text/plain')
 
 
 def dangerous_automation_disabled():
@@ -210,6 +275,11 @@ def get_stats():
         with open(companies_csv, 'r') as f:
             companies = len(list(csv.DictReader(f)))
             stats['companies'] = companies
+
+    # Update Prometheus metrics
+    APPLICATIONS_TOTAL.set(stats['total_applications'])
+    APPLICATIONS_SUCCESSFUL.set(stats['successful_applies'])
+    SUCCESS_RATE.set(stats['success_rate'])
 
     return jsonify(stats)
 
