@@ -92,9 +92,11 @@ def require_local_or_token():
 
     if DASHBOARD_TOKEN:
         supplied = request.headers.get('X-Dashboard-Token')
+        url_token = request.args.get('token')
         auth = request.headers.get('Authorization', '')
         bearer = auth.removeprefix('Bearer ').strip() if auth.startswith('Bearer ') else None
-        if supplied == DASHBOARD_TOKEN or bearer == DASHBOARD_TOKEN:
+        
+        if supplied == DASHBOARD_TOKEN or bearer == DASHBOARD_TOKEN or url_token == DASHBOARD_TOKEN:
             return None
         return jsonify({'error': 'Unauthorized'}), 401
 
