@@ -27,7 +27,12 @@ from job_automata.config import (
     STATE_DIR,
 )
 
-app = Flask(__name__, template_folder=str(PROJECT_ROOT / 'templates'))
+app = Flask(
+    __name__,
+    template_folder=str(PROJECT_ROOT / 'templates'),
+    static_folder=str(PROJECT_ROOT / 'static'),
+    static_url_path='/static',
+)
 
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///jobautomata.db')
@@ -85,6 +90,10 @@ def current_companies_name():
         if name:
             return name
     return DEFAULT_COMPANIES.name
+
+
+def _module_command(module: str, *args: str) -> list[str]:
+    return [os.environ.get("PYTHON", "python3"), "-m", module, *args]
 
 
 def safe_child_path(base_dir: Path, filename: str, suffixes: set[str]) -> Path:
@@ -185,6 +194,12 @@ def index():
     """Serve the dashboard"""
     return send_from_directory(PROJECT_ROOT / 'templates', 'dashboard.html')
 
+
+@app.route('/favicon.ico')
+def favicon():
+    """Silence browser favicon 404 noise."""
+    return ('', 204)
+
 @app.route('/api/stats')
 def get_stats():
     """Get dashboard statistics"""
@@ -281,7 +296,13 @@ def scrape():
 
     try:
         result = subprocess.run(
-            ['python3', 'url_scraper.py', '--markdown', str(DEFAULT_TARGET_COMPANIES), '--csv', str(DEFAULT_COMPANIES)],
+            _module_command(
+                'job_automata.infrastructure.scraping.url_scraper',
+                '--markdown',
+                str(DEFAULT_TARGET_COMPANIES),
+                '--csv',
+                str(DEFAULT_COMPANIES),
+            ),
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
@@ -339,7 +360,11 @@ def run_full():
 
     try:
         result = subprocess.run(
-            ['python3', 'auto_apply.py', '--csv', str(DEFAULT_COMPANIES)],
+            _module_command(
+                'job_automata.application.auto_apply',
+                '--csv',
+                str(DEFAULT_COMPANIES),
+            ),
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,

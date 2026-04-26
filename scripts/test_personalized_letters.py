@@ -22,7 +22,7 @@ with open(test_csv, 'w') as f:
     f.write(companies_data)
 
 # Load profile with personalized templates
-with open('example_profile.json', 'r') as f:
+with open('data/example_profile.json', 'r') as f:
     profile = json.load(f)
 
 # Load companies and generate letters

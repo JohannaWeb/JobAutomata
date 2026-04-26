@@ -9,7 +9,7 @@ help:
 	@echo " make venv Create virtual environment"
 	@echo ""
 	@echo "Quick workflow:"
-	@echo " make init Initialize profile.json and companies.csv templates"
+	@echo " make init Initialize data/profile.json and data/companies.csv templates"
 	@echo " make scrape Scrape 100 companies (use COUNT=300 for all)"
 	@echo " make scrape-300 Scrape all 300 companies + descriptions"
 	@echo " make dry-run Test applications (generates cover letters)"
@@ -31,7 +31,7 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo " make scrape COUNT=50 Scrape first 50 companies only"
-	@echo " make apply CSV=companies_100.csv Use a different CSV"
+	@echo " make apply CSV=data/companies_100.csv Use a different CSV"
 
 # Setup virtual environment
 venv:
@@ -51,9 +51,9 @@ install:
 # Initialize (create templates)
 init:
 	@echo "Initializing Job Automata..."
-	@. venv/bin/activate 2>/dev/null || true && python3 run.py --mode init
-	@echo " Created profile.json and companies.csv"
-	@echo " Edit profile.json with your contact info and templates"
+	@. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode init
+	@echo " Created data/profile.json and data/companies.csv"
+	@echo " Edit data/profile.json with your contact info and templates"
 
 # Scrape companies (default 100, customize with COUNT=300)
 COUNT ?= 100
@@ -62,14 +62,14 @@ CSV ?=
 scrape:
 	@if [ "$(COUNT)" = "300" ] || [ "$(COUNT)" = "all" ]; then \
 		echo "Scraping 300 companies..."; \
-		MARKDOWN=target-companies-300.md; \
-		CSV=companies_300.csv; \
+		MARKDOWN=data/target-companies-300.md; \
+		CSV=data/companies_300.csv; \
 	else \
 		echo "Scraping $(COUNT) companies..."; \
-		MARKDOWN=target-companies-100.md; \
-		CSV=companies.csv; \
+		MARKDOWN=data/target-companies-100.md; \
+		CSV=data/companies.csv; \
 	fi && \
-	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode scrape --markdown $$MARKDOWN --csv $$CSV
+	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode scrape --markdown $$MARKDOWN --csv $$CSV
 	@echo " Scraped companies."
 
 # Scrape all 300 companies (shorthand)
@@ -82,32 +82,32 @@ hunt:
 		echo "Set LINKEDIN_EMAIL and LINKEDIN_PASSWORD in your environment. Credentials are not accepted on argv."; \
 		exit 1; \
 	fi
-	@. venv/bin/activate 2>/dev/null || true && python3 run.py --mode hunt --linkedin-email "$$LINKEDIN_EMAIL"
+	@. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode hunt --linkedin-email "$$LINKEDIN_EMAIL"
 
 # Test dry run (no applications submitted)
 dry-run:
-	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f companies_300.csv ]; then SELECTED_CSV=companies_300.csv; else SELECTED_CSV=companies.csv; fi && \
+	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f data/companies_300.csv ]; then SELECTED_CSV=data/companies_300.csv; else SELECTED_CSV=data/companies.csv; fi && \
 	echo "Running dry run with $$SELECTED_CSV (no applications submitted)..."; \
-	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode test --csv $$SELECTED_CSV; \
+	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode test --csv $$SELECTED_CSV; \
 	echo " Dry run complete. Check logs for details."
 
 # Test scraper on single company
 test-scraper:
 	@read -p "Enter company name: " company; \
-	. venv/bin/activate 2>/dev/null || true && python3 url_scraper.py --company "$$company"
+	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.infrastructure.scraping.url_scraper --company "$$company"
 
 # Generate and preview cover letters
 test-letters:
 	@echo "Generating personalized cover letters..."
-	@. venv/bin/activate 2>/dev/null || true && python3 test_personalized_letters.py
+	@. venv/bin/activate 2>/dev/null || true && python3 scripts/test_personalized_letters.py
 
 # Apply to all companies
 apply:
-	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f companies_300.csv ]; then SELECTED_CSV=companies_300.csv; else SELECTED_CSV=companies.csv; fi && \
+	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f data/companies_300.csv ]; then SELECTED_CSV=data/companies_300.csv; else SELECTED_CSV=data/companies.csv; fi && \
 	echo " WARNING: This opens real application flows from $$SELECTED_CSV in a browser." && \
 	echo " It does not verify final form submission." && \
 	read -p "Press Enter to continue, Ctrl+C to cancel..." && \
-	. venv/bin/activate 2>/dev/null || true && python3 run.py --mode apply --csv $$SELECTED_CSV
+	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode apply --csv $$SELECTED_CSV
 
 # Run full workflow (init → scrape → test → apply)
 full:
@@ -116,21 +116,22 @@ full:
 	@$(MAKE) scrape-300
 	@$(MAKE) dry-run
 	@read -p "Ready to open apply flows? Press Enter, Ctrl+C to cancel..."
-	@$(MAKE) apply CSV=companies_300.csv
+	@$(MAKE) apply CSV=data/companies_300.csv
 
 # Clean generated files
 clean:
 	@echo "Cleaning generated files..."
-	@rm -f companies.csv companies_*.csv
-	@rm -f applications_*.csv
+	@rm -f data/companies.csv data/companies_*.csv
+	@rm -f var/applications/*.csv
 	@rm -f linkedin_managers.csv
 	@echo " Cleaned CSV files"
 
 # Clean all generated files
 clean-all: clean
 	@echo "Cleaning all generated files..."
-	@rm -f *.log
-	@rm -f url_cache.json
+	@rm -f var/log/*.log
+	@rm -f var/cache/url_cache.json
+	@rm -f var/state/*
 	@echo " Cleaned all generated files"
 
 # Quick check: list available commands
@@ -140,26 +141,26 @@ commands:
 # CV Manager UI (local dev) - deprecated, use dashboard instead
 cv-ui:
 	@echo "Starting CV Manager UI..."
-	@python3 cv_manager.py
+	@python3 -m job_automata.presentation.web.cv_manager
 
 # CV Manager UI (production ready) - deprecated, use dashboard instead
 cv-ui-prod:
 	@echo "Starting CV Manager (production mode)..."
-	@PORT=5000 python3 cv_manager.py
+	@PORT=5000 python3 -m job_automata.presentation.web.cv_manager
 
 # Dashboard UI (new - with dry run and scraper preview)
 dashboard:
 	@echo "Starting Job Automata Dashboard..."
-	@. venv/bin/activate 2>/dev/null || true && python3 web_app.py
+	@. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.presentation.web.app
 
 # Dashboard UI (production mode)
 dashboard-prod:
 	@echo "Starting Job Automata Dashboard (production)..."
-	@PORT=5000 . venv/bin/activate 2>/dev/null || true && python3 web_app.py
+	@PORT=5000 . venv/bin/activate 2>/dev/null || true && python3 -m job_automata.presentation.web.app
 
 # Setup and run (all-in-one)
 setup-and-run: venv init scrape-300 test-letters
 	@echo " Setup complete! Next steps:"
-	@echo " 1. Review profile.json"
+	@echo " 1. Review data/profile.json"
 	@echo " 2. Run: make dry-run"
 	@echo " 3. Run: make apply"

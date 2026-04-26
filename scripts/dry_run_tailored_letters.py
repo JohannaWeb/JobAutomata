@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 # Load the example profile
-with open('example_profile.json', 'r') as f:
+with open('data/example_profile.json', 'r') as f:
     profile = json.load(f)
 
 # Sample companies with categories

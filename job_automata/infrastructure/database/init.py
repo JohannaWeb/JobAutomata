@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-"""
-Initialize PostgreSQL database and migrate data from CSV files
-Run this once before first deployment: python db_init.py
-"""
+"""Initialize PostgreSQL database and migrate data from CSV files."""
 
 import os
 import csv
 import json
-from pathlib import Path
 from datetime import datetime
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -139,7 +135,7 @@ if __name__ == '__main__':
         migrate_applications()
         migrate_run_history()
         print("\n✅ Database initialization complete!")
-        print("Run: python web_app.py")
+        print("Run: python -m job_automata.presentation.web.app")
     except Exception as e:
         print(f"❌ Error: {e}")
         raise
