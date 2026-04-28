@@ -7,8 +7,24 @@ export function getElement(id) {
   return element;
 }
 
+const TOKEN_STORAGE_KEY = 'dashboardToken';
+
+function getDashboardToken() {
+  const urlToken = new URLSearchParams(window.location.search).get('token');
+  if (urlToken) {
+    try { sessionStorage.setItem(TOKEN_STORAGE_KEY, urlToken); } catch (_) {}
+    return urlToken;
+  }
+  try { return sessionStorage.getItem(TOKEN_STORAGE_KEY) || ''; } catch (_) { return ''; }
+}
+
 export async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
+  const token = getDashboardToken();
+  const headers = new Headers(options.headers || {});
+  if (token && !headers.has('X-Dashboard-Token')) {
+    headers.set('X-Dashboard-Token', token);
+  }
+  const response = await fetch(url, { ...options, headers });
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
