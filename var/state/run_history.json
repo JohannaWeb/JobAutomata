@@ -1,0 +1,12 @@
+{
+  "runs": [
+    {
+      "date": "2026-04-27T04:49:07.341987",
+      "type": "full",
+      "companies": 0,
+      "successful": 0,
+      "duration": "\u2014",
+      "status": "failed"
+    }
+  ]
+}

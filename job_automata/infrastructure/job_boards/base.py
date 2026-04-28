@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 class JobBoardHandler(Protocol):
     name: str
 
-    def open_apply_flow(self, driver: Any, company: Company, criteria: JobSearchCriteria) -> bool:
+    def open_apply_flow(self,
+                        driver: Any,
+                        company: Company,
+                        criteria: JobSearchCriteria) -> bool:
         """Open a board-specific apply flow for a matching role."""
 
 

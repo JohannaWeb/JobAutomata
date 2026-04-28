@@ -32,6 +32,8 @@ help:
 	@echo "Examples:"
 	@echo " make scrape COUNT=50 Scrape first 50 companies only"
 	@echo " make apply CSV=data/companies_100.csv Use a different CSV"
+	@echo " DASHBOARD_TOKEN=secret make dashboard Run dashboard with token"
+	@echo " ENABLE_DANGEROUS_AUTOMATION=true make dashboard Enable browser automation"
 
 # Setup virtual environment
 venv:
@@ -80,7 +82,8 @@ scrape-300:
 hunt:
 	@if [ -z "$$LINKEDIN_EMAIL" ] || [ -z "$$LINKEDIN_PASSWORD" ]; then \
 		echo "Set LINKEDIN_EMAIL and LINKEDIN_PASSWORD in your environment. Credentials are not accepted on argv."; \
-		exit 1; \
+		exit 1
+		; \
 	fi
 	@. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode hunt --linkedin-email "$$LINKEDIN_EMAIL"
 
@@ -151,12 +154,19 @@ cv-ui-prod:
 # Dashboard UI (new - with dry run and scraper preview)
 dashboard:
 	@echo "Starting Job Automata Dashboard..."
-	@. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.presentation.web.app
+	@. venv/bin/activate 2>/dev/null || true && \
+	ENABLE_DANGEROUS_AUTOMATION=$${ENABLE_DANGEROUS_AUTOMATION:-true} \
+	DASHBOARD_TOKEN=$${DASHBOARD_TOKEN} \
+	python3 -m job_automata.presentation.web.app
 
 # Dashboard UI (production mode)
 dashboard-prod:
 	@echo "Starting Job Automata Dashboard (production)..."
-	@PORT=5000 . venv/bin/activate 2>/dev/null || true && python3 -m job_automata.presentation.web.app
+	@. venv/bin/activate 2>/dev/null || true && \
+	PORT=$${PORT:-5000} \
+	ENABLE_DANGEROUS_AUTOMATION=$${ENABLE_DANGEROUS_AUTOMATION:-false} \
+	DASHBOARD_TOKEN=$${DASHBOARD_TOKEN} \
+	python3 -m job_automata.presentation.web.app
 
 # Setup and run (all-in-one)
 setup-and-run: venv init scrape-300 test-letters
