@@ -106,6 +106,22 @@ Uses full resume plus company data
 Generates unique 2-3 paragraph letters per company
 Graceful fallback to templates if API fails or quota exceeded
 
+## Deployment & Security
+
+### 🚀 Railway Deployment
+
+This application is ready for deployment on [Railway](https://railway.app). 
+
+1. **Set Environment Variables**:
+   - `DASHBOARD_TOKEN`: A secret token to protect your dashboard.
+   - `ENABLE_DANGEROUS_AUTOMATION`: Set to `true` to enable browser-based scraping and auto-apply features.
+   - `GEMINI_API_KEY`: Your Google AI Studio API key.
+
+2. **Accessing the Dashboard**:
+   Once deployed, access your dashboard via: `https://your-app.railway.app/?token=YOUR_TOKEN_HERE`
+
+For more detailed deployment instructions and a list of all available commands, see [USEFUL_COMMANDS.md](docs/USEFUL_COMMANDS.md).
+
 ## Data Files
 
 ### profile.json

@@ -23,6 +23,7 @@ from typing import Any
 
 from job_automata.config import APPLICATIONS_DIR, DEFAULT_COMPANIES, DEFAULT_PROFILE, DEFAULT_TARGET_COMPANIES, LOG_DIR
 from job_automata.domain import Company, JobSearchCriteria, normalize_text
+from job_automata.infrastructure.ats import fill_application_form
 from job_automata.infrastructure.job_boards import get_job_board_handler, select_job
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -47,9 +48,12 @@ logger.addHandler(logging.StreamHandler())
 class JobApplicationAutomata:
     """Loads targets, generates application material, and records run results."""
 
-    def __init__(self, headless: bool = True, delay_seconds: int = 3):
+    TEXT_RESUME_SUFFIXES = {".md", ".markdown", ".txt", ".rst"}
+
+    def __init__(self, headless: bool = True, delay_seconds: int = 3, pause_each: bool = False):
         self.delay = delay_seconds
-        self.headless = headless
+        self.headless = headless and not pause_each
+        self.pause_each = pause_each
         self.companies: list[Company] = []
         self.results: list[dict[str, Any]] = []
         self.profile_path = DEFAULT_PROFILE
@@ -136,10 +140,26 @@ class JobApplicationAutomata:
             if not resume_path.is_absolute():
                 resume_path = DEFAULT_PROFILE.parent / resume_path
             if resume_path.exists():
-                profile["resume_content"] = resume_path.read_text()
-                logger.info("Loaded resume from %s", resume_path)
+                profile["resume_path"] = str(resume_path)
+                resume_content = self._read_resume_text(resume_path)
+                if resume_content:
+                    profile["resume_content"] = resume_content
+                    logger.info("Loaded resume text from %s", resume_path)
+                else:
+                    logger.info("Using resume file %s without text extraction", resume_path)
 
         return profile
+
+    @classmethod
+    def _read_resume_text(cls, resume_path: Path) -> str:
+        if resume_path.suffix.lower() not in cls.TEXT_RESUME_SUFFIXES:
+            return ""
+
+        try:
+            return resume_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            logger.warning("Resume %s is not UTF-8; decoding with replacement characters", resume_path)
+            return resume_path.read_text(encoding="utf-8", errors="replace")
 
     def generate_cover_letter(
         self,
@@ -208,6 +228,52 @@ class JobApplicationAutomata:
         """Compatibility wrapper for tests and scripts importing this method."""
         return select_job(jobs, criteria)
 
+    def _pause_loop(
+        self,
+        driver: webdriver.Chrome,
+        profile: dict[str, Any],
+        cover_letter: str,
+    ) -> tuple[list[str], list[str]]:
+        """Interactive pause: let user trigger autofill (possibly multiple times), then advance."""
+        latest_filled: list[str] = []
+        latest_notes: list[str] = []
+        prompt = (
+            "\n[Enter] run autofill   [n] move to next company   [s] skip this company   [q] quit run: "
+        )
+        while True:
+            try:
+                cmd = input(prompt).strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                logger.warning("Aborted by user during pause")
+                raise
+            if cmd == "":
+                result = fill_application_form(
+                    driver, profile, profile.get("resume_path"), cover_letter
+                )
+                latest_filled = result.filled
+                latest_notes = result.notes
+                logger.info(
+                    "Autofill: %s filled, %s skipped",
+                    len(result.filled), len(result.skipped),
+                )
+                if result.filled:
+                    print(f"Filled {len(result.filled)} field(s):")
+                    for f in result.filled:
+                        print(f"  + {f}")
+                else:
+                    print("No fields filled. Likely reasons: form behind captcha/login, fields in nested iframe, or non-standard labels.")
+                for n in result.notes:
+                    print(f"  ! {n}")
+                continue
+            if cmd in ("n", "s"):
+                if cmd == "s":
+                    logger.info("User skipped company")
+                return latest_filled, latest_notes
+            if cmd == "q":
+                logger.warning("User quit run")
+                raise KeyboardInterrupt
+            print("Unknown command. Use Enter / n / s / q.")
+
     def apply_company(self, driver: webdriver.Chrome, company: Company, profile: dict[str, Any]) -> bool:
         """Open the first detected application flow for a supported job board."""
         if not company.careers_url and not company.url:
@@ -252,21 +318,31 @@ class JobApplicationAutomata:
 
                 logger.info("[%s/%s] Processing %s", index, len(self.companies), company.name)
                 cover_letter = self.generate_cover_letter(company, profile)
+                autofill_filled: list[str] = []
+                autofill_notes: list[str] = []
                 if dry_run:
                     success = True
                     status = "dry_run_planned"
                     notes = "Dry run only; no browser action taken."
                 else:
                     success = self.apply_company(driver, company, profile)
-                    status = "opened_apply_flow" if success else "failed"
+                    status = "opened_apply_flow_not_submitted" if success else "failed"
                     notes = (
-                        "Opened the first detected apply flow; form submission is not verified."
+                        "Opened the first detected apply flow; no form was submitted."
                         if success
                         else company.notes
                     )
+                    if success and self.pause_each:
+                        time.sleep(1)
+                        print(f"\n--- {company.name} ---")
+                        print("Apply page opened. If a captcha or login gate is present, solve it first.")
+                        autofill_filled, autofill_notes = self._pause_loop(
+                            driver, profile, cover_letter
+                        )
+                        if autofill_filled:
+                            status = "form_autofilled_awaiting_human_submit"
+                            notes = f"Autofilled {len(autofill_filled)} field(s); human submitted manually."
                     if success:
-                        company.applied = True
-                        company.application_date = datetime.now().isoformat()
                         company.notes = notes
 
                 self.results.append(
@@ -281,6 +357,8 @@ class JobApplicationAutomata:
                         "submitted": False,
                         "status": status,
                         "notes": notes,
+                        "autofill_filled": "; ".join(autofill_filled),
+                        "autofill_notes": "; ".join(autofill_notes),
                         "cover_letter_preview": cover_letter[:500],
                     }
                 )
@@ -358,6 +436,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Job Application Automata")
     parser.add_argument("--dry-run", action="store_true", help="Dry run mode (no applications)")
     parser.add_argument("--headless", action="store_true", default=True, help="Run browser headless")
+    parser.add_argument("--pause-each", action="store_true", help="Autofill each form, then pause for human review + manual submit (forces non-headless)")
     parser.add_argument("--init", action="store_true", help="Initialize CSV and profile templates")
     parser.add_argument("--csv", default=str(DEFAULT_COMPANIES), help="Companies CSV file")
     parser.add_argument("--markdown", default=str(DEFAULT_TARGET_COMPANIES), help="Source markdown file")
@@ -372,7 +451,7 @@ def main() -> int:
         logger.info("Initialization complete. Edit %s and %s, then run with --dry-run", args.csv, DEFAULT_PROFILE)
         return 0
 
-    automata = JobApplicationAutomata(headless=args.headless)
+    automata = JobApplicationAutomata(headless=args.headless, pause_each=args.pause_each)
     automata.load_companies_from_csv(args.csv)
     automata.run(dry_run=args.dry_run)
     return 0
