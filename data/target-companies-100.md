@@ -34,7 +34,6 @@
 19. **Servo** (Mozilla) - Browser engine R&D
 20. **Ladybird** - New independent browser engine
 21. **Igalia** - Web standards and open source
-22. **Chromium/Google** - V8, browser development
 23. **Firefox/Mozilla** - SpiderMonkey, browser engine
 24. **Apple WebKit** - Safari rendering
 25. **Brave** - Privacy-focused browser
@@ -51,7 +50,6 @@
 31. **Anthropic** - Claude, AI safety
 32. **OpenAI** - GPT models, research
 33. **Meta AI** - LLaMA, open-source models
-34. **Google DeepMind** - AI research
 35. **Stability AI** - Open-source generative models
 36. **HuggingFace** - Model hub, transformers
 37. **Together AI** - Distributed AI
@@ -180,4 +178,3 @@
 - **Startups vs. Big Tech?** Split between 40% startups (Tier 1-2) + 30% FAANG + 30% scale-up
 - **Remote-first?** Replit, Fly.io, Deno, Tauri, together favor remote
 - **Values-aligned?** All listed companies have public commitments to diversity; cross-check careers page
-

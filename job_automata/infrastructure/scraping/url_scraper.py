@@ -155,6 +155,31 @@ JOB_BOARD_MARKERS = {
     "ats": ("applicantstack", "taleo", "successfactors"),
 }
 
+BLOCKED_COMPANY_TERMS = ("google",)
+BLOCKED_DOMAINS = (
+    "google.com",
+    "googleapis.com",
+    "googleusercontent.com",
+    "gstatic.com",
+    "withgoogle.com",
+    "googlecloud.com",
+    "blog.google",
+    "deepmind.google",
+)
+
+
+def is_blocked_company(company_name: str) -> bool:
+    normalized = company_name.casefold()
+    return any(term in normalized for term in BLOCKED_COMPANY_TERMS)
+
+
+def is_blocked_url(url: str | None) -> bool:
+    if not url:
+        return False
+    parsed = urlparse(url if url.startswith(("http://", "https://")) else f"https://{url}")
+    host = parsed.netloc.casefold().removeprefix("www.")
+    return any(host == domain or host.endswith(f".{domain}") for domain in BLOCKED_DOMAINS)
+
 
 class URLScraper:
     """Enriches company names with website, careers page, job board, and description."""
@@ -181,9 +206,17 @@ class URLScraper:
         self.cache_file.write_text(json.dumps(self.cache, indent=2, sort_keys=True) + "\n")
 
     def guess_domain(self, company_name: str) -> str | None:
+        if is_blocked_company(company_name):
+            logger.info("Skipping blocked company target: %s", company_name)
+            return None
+
         cache_key = f"{company_name}:domain"
         if cache_key in self.cache:
-            return self.cache[cache_key]
+            cached_url = self.cache[cache_key]
+            if not is_blocked_url(cached_url):
+                return cached_url
+            logger.info("Ignoring blocked cached URL for %s: %s", company_name, cached_url)
+            return None
 
         slug = re.sub(r"[^a-z0-9]+", "-", company_name.lower()).strip("-")
         compact = slug.replace("-", "")
@@ -194,6 +227,8 @@ class URLScraper:
                     response = self.session.head(url, timeout=5, allow_redirects=True)
                     if response.status_code < 400:
                         normalized = self.normalize_url(response.url)
+                        if is_blocked_url(normalized):
+                            continue
                         self.cache[cache_key] = normalized
                         self._save_cache()
                         return normalized
@@ -230,6 +265,8 @@ class URLScraper:
             text = link.get_text(" ", strip=True).lower()
             if any(term in href.lower() or term in text for term in ("careers", "jobs", "hiring", "join")):
                 careers_url = urljoin(base_url, href)
+                if is_blocked_url(careers_url):
+                    continue
                 self.cache[cache_key] = careers_url
                 self._save_cache()
                 return careers_url
@@ -238,7 +275,7 @@ class URLScraper:
             candidate = urljoin(base_url, path)
             try:
                 response = self.session.head(candidate, timeout=5, allow_redirects=True)
-                if response.status_code < 400:
+                if response.status_code < 400 and not is_blocked_url(response.url):
                     self.cache[cache_key] = response.url
                     self._save_cache()
                     return response.url
@@ -309,8 +346,18 @@ class URLScraper:
 
     def scrape_company(self, company_name: str) -> dict[str, Any]:
         logger.info("Scraping %s", company_name)
+        if is_blocked_company(company_name):
+            logger.info("Skipping blocked company target: %s", company_name)
+            return {
+                "name": company_name,
+                "url": "",
+                "careers_url": "",
+                "job_board": "",
+                "description": "",
+            }
+
         website = KNOWN_URLS.get(company_name) or self.guess_domain(company_name)
-        if not website:
+        if not website or is_blocked_url(website):
             logger.warning("Could not find website for %s", company_name)
             return {
                 "name": company_name,
@@ -377,7 +424,7 @@ def extract_company_names(markdown_path: Path) -> list[str]:
             stripped = line.strip()
             if stripped and stripped[0].isdigit() and "**" in stripped:
                 parts = stripped.split("**")
-                if len(parts) >= 2:
+                if len(parts) >= 2 and not is_blocked_company(parts[1].strip()):
                     companies.append(parts[1].strip())
     return companies
 

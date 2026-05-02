@@ -1,4 +1,4 @@
-.PHONY: help init scrape scrape-300 hunt dry-run test-letters apply clean test-scraper venv cv-ui
+.PHONY: help init scrape scrape-2 scrape-300 hunt dry-run test-letters apply apply-interactive clean test-scraper venv cv-ui
 
 # Default target
 help:
@@ -10,10 +10,12 @@ help:
 	@echo ""
 	@echo "Quick workflow:"
 	@echo " make init Initialize data/profile.json and data/companies.csv templates"
-	@echo " make scrape Scrape 100 companies (use COUNT=300 for all)"
+	@echo " make scrape Scrape 100 companies (use COUNT=2 for smoke test or COUNT=300 for all)"
+	@echo " make scrape-2 Scrape 2 companies for a fast smoke test"
 	@echo " make scrape-300 Scrape all 300 companies + descriptions"
 	@echo " make dry-run Test applications (generates cover letters)"
 	@echo " make apply Open apply flows for all companies"
+	@echo " make apply-interactive Open apply flows and pause after each for autofill/review"
 	@echo ""
 	@echo "Testing & Preview:"
 	@echo " make test-scraper Test scraper on single company"
@@ -30,8 +32,9 @@ help:
 	@echo " make clean-all Remove all generated files (including logs)"
 	@echo ""
 	@echo "Examples:"
-	@echo " make scrape COUNT=50 Scrape first 50 companies only"
-	@echo " make apply CSV=data/companies_100.csv Use a different CSV"
+	@echo " make scrape COUNT=2 Scrape 2 companies into data/companies_2.csv"
+	@echo " make scrape COUNT=100 Scrape 100 companies into data/companies.csv"
+	@echo " make apply CSV=data/companies.csv Use a specific CSV"
 	@echo " DASHBOARD_TOKEN=secret make dashboard Run dashboard with token"
 	@echo " ENABLE_DANGEROUS_AUTOMATION=true make dashboard Enable browser automation"
 
@@ -57,7 +60,7 @@ init:
 	@echo " Created data/profile.json and data/companies.csv"
 	@echo " Edit data/profile.json with your contact info and templates"
 
-# Scrape companies (default 100, customize with COUNT=300)
+# Scrape companies (default 100, customize with COUNT=2 or COUNT=300)
 COUNT ?= 100
 CSV ?=
 
@@ -66,13 +69,24 @@ scrape:
 		echo "Scraping 300 companies..."; \
 		MARKDOWN=data/target-companies-300.md; \
 		CSV=data/companies_300.csv; \
-	else \
-		echo "Scraping $(COUNT) companies..."; \
+	elif [ "$(COUNT)" = "2" ]; then \
+		echo "Scraping 2 companies..."; \
+		MARKDOWN=data/target-companies-2.md; \
+		CSV=data/companies_2.csv; \
+	elif [ "$(COUNT)" = "100" ]; then \
+		echo "Scraping 100 companies..."; \
 		MARKDOWN=data/target-companies-100.md; \
 		CSV=data/companies.csv; \
+	else \
+		echo "Unsupported COUNT=$(COUNT). Use COUNT=2, COUNT=100, or COUNT=300."; \
+		exit 1; \
 	fi && \
 	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode scrape --markdown $$MARKDOWN --csv $$CSV
 	@echo " Scraped companies."
+
+# Scrape 2 companies (shorthand)
+scrape-2:
+	@$(MAKE) scrape COUNT=2
 
 # Scrape all 300 companies (shorthand)
 scrape-300:
@@ -82,10 +96,10 @@ scrape-300:
 hunt:
 	@if [ -z "$$LINKEDIN_EMAIL" ] || [ -z "$$LINKEDIN_PASSWORD" ]; then \
 		echo "Set LINKEDIN_EMAIL and LINKEDIN_PASSWORD in your environment. Credentials are not accepted on argv."; \
-		exit 1
-		; \
+		exit 1; \
 	fi
-	@. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode hunt --linkedin-email "$$LINKEDIN_EMAIL"
+	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f data/companies_300.csv ]; then SELECTED_CSV=data/companies_300.csv; else SELECTED_CSV=data/companies.csv; fi && \
+	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode hunt --linkedin-email "$$LINKEDIN_EMAIL" --csv $$SELECTED_CSV
 
 # Test dry run (no applications submitted)
 dry-run:
@@ -109,8 +123,19 @@ apply:
 	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f data/companies_300.csv ]; then SELECTED_CSV=data/companies_300.csv; else SELECTED_CSV=data/companies.csv; fi && \
 	echo " WARNING: This opens real application flows from $$SELECTED_CSV in a browser." && \
 	echo " It does not verify final form submission." && \
-	read -p "Press Enter to continue, Ctrl+C to cancel..." && \
+	printf "Press Enter to continue, Ctrl+C to cancel..." && \
+	read CONFIRM && \
 	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode apply --csv $$SELECTED_CSV
+
+# Interactive apply: open each flow, autofill on Enter, then wait for human review/manual submit
+apply-interactive:
+	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f data/companies_300.csv ]; then SELECTED_CSV=data/companies_300.csv; else SELECTED_CSV=data/companies.csv; fi && \
+	echo " WARNING: This opens visible browser application flows from $$SELECTED_CSV." && \
+	echo " Controls: Enter=autofill, y=I submitted it, n=not submitted, q=quit." && \
+	echo " You review and submit manually; the script marks applied only after y." && \
+	printf "Press Enter to continue, Ctrl+C to cancel..." && \
+	read CONFIRM && \
+	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.auto_apply --pause-each --csv $$SELECTED_CSV
 
 # Run full workflow (init → scrape → test → apply)
 full:

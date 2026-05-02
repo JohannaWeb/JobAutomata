@@ -18,14 +18,14 @@ export async function loadDashboard() {
 }
 
 export async function startFullRun() {
-  if (!confirm('Start full automation? This will submit actual applications.')) return;
+  if (!confirm('Launch make apply-interactive for the selected CSV? Continue in the terminal running the dashboard.')) return;
   showLoading(true);
   try {
     const data = await fetchJson('/api/run-full', { method: 'POST' });
     if (!data.success) {
       throw new Error(`Workflow ${data.status || 'failed'}`);
     }
-    alert('Workflow completed. Check History tab for details.');
+    alert(`Launched: ${data.command}\nPID: ${data.pid}\nContinue in the terminal running the dashboard.`);
     await Promise.all([loadDashboard(), loadHistory()]);
   } catch (err) {
     alert('Error: ' + err.message);

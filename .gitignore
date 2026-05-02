@@ -25,4 +25,5 @@ companies_*.csv
 linkedin_managers.csv
 .idea/
 .vscode/
-.codex
+.codex/
+docs/.codex

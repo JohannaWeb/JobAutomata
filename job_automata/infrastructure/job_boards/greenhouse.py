@@ -25,7 +25,12 @@ class GreenhouseHandler:
 
     def open_apply_flow(self, driver: Any, company: Company, criteria: JobSearchCriteria) -> bool:
         logger.info("Opening Greenhouse apply flow for %s", company.name)
-        driver.get(company.careers_url or f"{company.url}/careers")
+        target_url = company.careers_url or f"{company.url}/careers"
+        driver.get(target_url)
+
+        if "/jobs/" in target_url:
+            self._click_apply_if_available(driver)
+            return True
 
         jobs = self._find_jobs(driver)
         if not jobs:
@@ -43,6 +48,11 @@ class GreenhouseHandler:
             job.click()
 
         # Form is usually already on the job page in the new layout; clicking Apply is best-effort.
+        self._click_apply_if_available(driver)
+        return True
+
+    @staticmethod
+    def _click_apply_if_available(driver: Any) -> None:
         try:
             apply_button = WebDriverWait(driver, 5).until(
                 EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Apply')] | //button[contains(., 'Apply')]"))
@@ -50,7 +60,6 @@ class GreenhouseHandler:
             apply_button.click()
         except TimeoutException:
             logger.info("No separate Apply button — form likely inline on job page")
-        return True
 
     def _find_jobs(self, driver: Any) -> list[Any]:
         for selector in self.JOB_SELECTORS:
@@ -66,4 +75,3 @@ class GreenhouseHandler:
                 logger.info("Found %s job links via selector %r", len(visible), selector)
                 return visible
         return []
-

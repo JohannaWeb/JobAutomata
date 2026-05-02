@@ -48,11 +48,15 @@ See AI_SETUP.md for detailed AI cover letter configuration.
 
 ## Available Commands
 
-Run `make help` to see all commands, or use:
+Run `make help` to see all commands. For the short command list, see [COMMANDS.MD](docs/COMMANDS.MD).
+
+Common commands:
 
 make init: Create profile.json and companies.csv templates
 
-make scrape: Scrape 100 companies (or specify COUNT=300)
+make scrape-2: Scrape 2 companies for a smoke test
+
+make scrape: Scrape 100 companies
 
 make scrape-300: Scrape all 300 companies
 
