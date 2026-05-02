@@ -410,17 +410,26 @@ def scrape():
 
 @app.route('/api/run-full', methods=['POST'])
 def run_full():
-    """Start full automation workflow"""
+    """Launch the existing interactive CLI workflow for the selected CSV."""
     if not DANGEROUS_AUTOMATION_ENABLED:
         return dangerous_automation_disabled()
 
-    logger.info("Starting full automation workflow")
+    csv_name = current_companies_name()
+    try:
+        companies_csv = safe_child_path(DATA_DIR, csv_name, {'.csv'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+    if not companies_csv.exists():
+        return jsonify({'error': 'Selected companies CSV not found'}), 404
+
+    logger.info("Launching interactive apply workflow for %s", companies_csv.name)
 
     history = load_run_history()
 
     run_entry = {
         'date': datetime.now().isoformat(),
-        'type': 'full',
+        'type': 'apply-interactive',
         'companies': 0,
         'successful': 0,
         'duration': '—',
@@ -431,29 +440,21 @@ def run_full():
     save_run_history(history)
 
     try:
-        result = subprocess.run(
-            _module_command(
-                'job_automata.application.auto_apply',
-                '--csv',
-                str(DEFAULT_COMPANIES),
-            ),
+        process = subprocess.Popen(
+            ['make', 'apply-interactive', f'CSV={companies_csv}'],
             cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True,
-            timeout=3600
         )
 
-        run_entry['status'] = 'completed' if result.returncode == 0 else 'failed'
+        run_entry['status'] = f'launched pid {process.pid}'
         save_run_history(history)
 
         return jsonify({
-            'success': result.returncode == 0,
-            'status': run_entry['status']
+            'success': True,
+            'status': run_entry['status'],
+            'pid': process.pid,
+            'csv': companies_csv.name,
+            'command': f'make apply-interactive CSV={companies_csv}'
         })
-    except subprocess.TimeoutExpired:
-        run_entry['status'] = 'timeout'
-        save_run_history(history)
-        return jsonify({'error': 'Workflow timeout'}), 408
     except Exception as e:
         logger.error(f"Workflow error: {e}")
         run_entry['status'] = 'error'

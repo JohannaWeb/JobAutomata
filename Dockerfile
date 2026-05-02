@@ -14,7 +14,7 @@ ENV CHROMIUM_PATH=/usr/bin/chromium \
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY docs/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .

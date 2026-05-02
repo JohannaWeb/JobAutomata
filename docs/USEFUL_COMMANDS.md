@@ -1,5 +1,7 @@
 # Useful Commands
 
+For the short command list, see [../COMMANDS.MD](COMMANDS.MD).
+
 ## Railway & Production Deployment
 
 ### 🔐 Security & Access

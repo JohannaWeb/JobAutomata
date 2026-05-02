@@ -66,7 +66,6 @@
 51. **Servo** (Mozilla) - Browser engine R&D
 52. **Ladybird** - New independent browser engine
 53. **Igalia** - Web standards and open source
-54. **Chromium/Google** - V8, browser development
 55. **Firefox/Mozilla** - SpiderMonkey, browser engine
 56. **Apple WebKit** - Safari rendering
 57. **Brave** - Privacy-focused browser
@@ -77,7 +76,6 @@
 62. **Dioxus** - Rust UI framework
 63. **Electron** (GitHub) - Desktop app framework
 64. **NW.js** - Desktop apps with web tech
-65. **Flutter/Google** - Cross-platform UI
 66. **Qt Company** - Cross-platform framework
 67. **Dear ImGui** - Immediate-mode GUI
 68. **Bevy** - Rust game engine
@@ -87,7 +85,6 @@
 72. **OpenGL/Khronos** - Graphics standards
 73. **DirectX/Microsoft** - Graphics API
 74. **Metal/Apple** - Graphics framework
-75. **ANGLE/Google** - Graphics abstraction
 76. **Pixel** - Modern pixel art editor
 77. **Krita** - Digital painting
 78. **Blender** - 3D graphics
@@ -101,7 +98,6 @@
 81. **Anthropic** - Claude, AI safety
 82. **OpenAI** - GPT models, research
 83. **Meta AI** - LLaMA, open-source models
-84. **Google DeepMind** - AI research
 85. **Stability AI** - Open-source generative models
 86. **HuggingFace** - Model hub, transformers
 87. **Together AI** - Distributed AI
@@ -119,9 +115,7 @@
 99. **CUDA/NVIDIA** - GPU computing
 100. **Cerebras** - AI chip design
 101. **Hugging Face** - Transformers library
-102. **Tensorflow/Google** - ML framework
 103. **PyTorch/Meta** - Deep learning framework
-104. **JAX/Google** - Composable ML
 105. **MXNet/Apache** - ML framework
 106. **ONNX/Open** - Interoperable ML
 107. **Triton Inference** - Inference optimization
@@ -136,7 +130,6 @@
 116. **Palantir** - Data analytics
 117. **Sisense** - Business intelligence
 118. **Tableau/Salesforce** - Business analytics
-119. **Looker/Google** - Business intelligence
 120. **Domo** - Data platform
 121. **Alteryx** - Data analytics
 122. **Informatica** - Data management
@@ -214,7 +207,6 @@
 184. **HashiCorp** - Infrastructure automation
 185. **CloudFlare** - Edge computing and security
 186. **AWS/Amazon** - Cloud services
-187. **Google Cloud** - Cloud services
 188. **Microsoft Azure** - Cloud services
 189. **IBM Cloud** - Cloud services
 190. **Oracle Cloud** - Cloud services
@@ -231,12 +223,10 @@
 201. **PlanetScale** - MySQL platform
 202. **Neon** - Postgres platform
 203. **Supabase** - Postgres backend
-204. **Firebase/Google** - Backend services
 205. **Parse Server** - Open-source backend
 206. **Convex** - Backend platform
 207. **Hasura** - GraphQL backend
 208. **AWS Lambda** - Serverless compute
-209. **Google Cloud Functions** - Serverless
 210. **Azure Functions** - Serverless
 211. **Cloudflare Workers** - Edge computing
 212. **Deno Deploy** - Serverless

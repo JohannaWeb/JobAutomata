@@ -20,6 +20,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from job_automata.config import APPLICATIONS_DIR, DEFAULT_COMPANIES, DEFAULT_PROFILE, DEFAULT_TARGET_COMPANIES, LOG_DIR
 from job_automata.domain import Company, JobSearchCriteria, normalize_text
@@ -43,6 +44,36 @@ logger = logging.getLogger(__name__)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 logger.addHandler(logging.FileHandler(LOG_DIR / "job_applications.log"))
 logger.addHandler(logging.StreamHandler())
+
+
+BLOCKED_DOMAINS = (
+    "google.com",
+    "googleapis.com",
+    "googleusercontent.com",
+    "gstatic.com",
+    "withgoogle.com",
+    "googlecloud.com",
+    "blog.google",
+    "deepmind.google",
+)
+
+
+def parse_bool(value: Any) -> bool:
+    return str(value or "").strip().casefold() in {"true", "1", "yes", "y", "applied", "submitted"}
+
+
+def is_blocked_company_or_url(company: Company) -> bool:
+    if "google" in company.name.casefold():
+        return True
+
+    for url in (company.url, company.careers_url):
+        if not url:
+            continue
+        parsed = urlparse(url if url.startswith(("http://", "https://")) else f"https://{url}")
+        host = parsed.netloc.casefold().removeprefix("www.")
+        if any(host == domain or host.endswith(f".{domain}") for domain in BLOCKED_DOMAINS):
+            return True
+    return False
 
 
 class JobApplicationAutomata:
@@ -82,7 +113,7 @@ class JobApplicationAutomata:
                     careers_url=row.get("careers_url", "").strip(),
                     job_board=row.get("job_board", "").strip(),
                     description=row.get("description", "").strip(),
-                    applied=row.get("applied", "False") == "True",
+                    applied=parse_bool(row.get("applied", "False")),
                     application_date=row.get("application_date", "").strip(),
                     notes=row.get("notes", "").strip(),
                 )
@@ -170,7 +201,9 @@ class JobApplicationAutomata:
         if generate_cover_letter_ai is not None:
             try:
                 logger.info("Generating AI cover letter for %s", company.name)
-                return generate_cover_letter_ai(company, profile)
+                cover_letter = generate_cover_letter_ai(company, profile)
+                self._log_cover_letter(company, cover_letter, source="ai")
+                return cover_letter
             except Exception as exc:
                 logger.debug("AI generation failed for %s: %s", company.name, exc)
 
@@ -182,11 +215,24 @@ class JobApplicationAutomata:
                 "experience in {focus_area}."
             )
 
-        return template.format(
+        cover_letter = template.format(
             company_name=company.name,
             focus_area=focus_area,
             company_focus="building the future",
             company_description=company.description or "building innovative technology",
+        )
+        self._log_cover_letter(company, cover_letter, source="template")
+        return cover_letter
+
+    @staticmethod
+    def _log_cover_letter(company: Company, cover_letter: str, source: str) -> None:
+        preview = " ".join(cover_letter.split())
+        logger.info(
+            "Cover letter generated for %s using %s (%s chars): %s",
+            company.name,
+            source,
+            len(cover_letter),
+            preview[:1200],
         )
 
     @staticmethod
@@ -233,12 +279,12 @@ class JobApplicationAutomata:
         driver: webdriver.Chrome,
         profile: dict[str, Any],
         cover_letter: str,
-    ) -> tuple[list[str], list[str]]:
-        """Interactive pause: let user trigger autofill (possibly multiple times), then advance."""
+    ) -> tuple[list[str], list[str], bool]:
+        """Interactive pause: let user trigger autofill, then confirm manual submission."""
         latest_filled: list[str] = []
         latest_notes: list[str] = []
         prompt = (
-            "\n[Enter] run autofill   [n] move to next company   [s] skip this company   [q] quit run: "
+            "\n[Enter] run autofill   [y] I submitted it   [n] not submitted   [q] quit run: "
         )
         while True:
             try:
@@ -265,14 +311,24 @@ class JobApplicationAutomata:
                 for n in result.notes:
                     print(f"  ! {n}")
                 continue
-            if cmd in ("n", "s"):
-                if cmd == "s":
-                    logger.info("User skipped company")
-                return latest_filled, latest_notes
+            if cmd == "y":
+                logger.info("User confirmed manual submission")
+                return latest_filled, latest_notes, True
+            if cmd == "n":
+                logger.info("User confirmed application was not submitted")
+                return latest_filled, latest_notes, False
             if cmd == "q":
                 logger.warning("User quit run")
                 raise KeyboardInterrupt
-            print("Unknown command. Use Enter / n / s / q.")
+            print("Unknown command. Use Enter / y / n / q.")
+
+    @staticmethod
+    def _reset_browser_between_companies(driver: webdriver.Chrome) -> None:
+        try:
+            driver.switch_to.default_content()
+            driver.get("about:blank")
+        except Exception as exc:
+            logger.debug("Browser reset between companies failed: %s", exc)
 
     def apply_company(self, driver: webdriver.Chrome, company: Company, profile: dict[str, Any]) -> bool:
         """Open the first detected application flow for a supported job board."""
@@ -285,6 +341,16 @@ class JobApplicationAutomata:
         criteria = JobSearchCriteria.from_profile(profile)
         handler = get_job_board_handler(company.job_board)
         if handler is None:
+            if self.pause_each:
+                url = company.careers_url or company.url
+                logger.info(
+                    "Opening %s without a board-specific handler (%s): %s",
+                    company.name,
+                    company.job_board or "unknown",
+                    url,
+                )
+                driver.get(url)
+                return True
             logger.warning("Unknown job board for %s: %s", company.name, company.job_board)
             return False
 
@@ -294,7 +360,7 @@ class JobApplicationAutomata:
             logger.error("Application flow failed for %s: %s", company.name, exc)
             return False
 
-    def run(self, dry_run: bool = True) -> None:
+    def run(self, dry_run: bool = True, limit: int | None = None) -> None:
         logger.info("Starting job application automata")
         if dry_run:
             logger.info("DRY RUN MODE - no applications will be submitted")
@@ -304,46 +370,81 @@ class JobApplicationAutomata:
             logger.warning("No profile loaded. Continuing with defaults.")
 
         driver = None
+        processed = 0
+        opened_flows = 0
         try:
             if not dry_run:
                 driver = webdriver.Chrome(options=self._setup_chrome_options())
 
             for index, company in enumerate(self.companies, start=1):
+                if is_blocked_company_or_url(company):
+                    logger.info("[%s/%s] Skipping %s (blocked Google target/link)", index, len(self.companies), company.name)
+                    continue
                 if company.applied:
                     logger.info("[%s/%s] Skipping %s (already applied)", index, len(self.companies), company.name)
                     continue
                 if not company.url and not company.careers_url:
                     logger.warning("[%s/%s] Skipping %s (no URL)", index, len(self.companies), company.name)
                     continue
+                if not dry_run and not self.pause_each and get_job_board_handler(company.job_board) is None:
+                    logger.info(
+                        "[%s/%s] Skipping %s (unsupported job board: %s)",
+                        index,
+                        len(self.companies),
+                        company.name,
+                        company.job_board or "unknown",
+                    )
+                    continue
 
                 logger.info("[%s/%s] Processing %s", index, len(self.companies), company.name)
+                processed += 1
                 cover_letter = self.generate_cover_letter(company, profile)
                 autofill_filled: list[str] = []
                 autofill_notes: list[str] = []
+                submitted = False
                 if dry_run:
                     success = True
                     status = "dry_run_planned"
                     notes = "Dry run only; no browser action taken."
                 else:
+                    original_notes = company.notes
                     success = self.apply_company(driver, company, profile)
                     status = "opened_apply_flow_not_submitted" if success else "failed"
                     notes = (
-                        "Opened the first detected apply flow; no form was submitted."
+                        "Opened an apply/careers flow; no form was submitted."
                         if success
                         else company.notes
                     )
                     if success and self.pause_each:
                         time.sleep(1)
                         print(f"\n--- {company.name} ---")
-                        print("Apply page opened. If a captcha or login gate is present, solve it first.")
-                        autofill_filled, autofill_notes = self._pause_loop(
+                        print(f"Opened: {driver.current_url}")
+                        print("\nGenerated cover letter:")
+                        print(cover_letter)
+                        print()
+                        print("If this is a careers page, pick a role/apply form first. If a captcha or login gate is present, solve it first.")
+                        autofill_filled, autofill_notes, submitted = self._pause_loop(
                             driver, profile, cover_letter
                         )
-                        if autofill_filled:
-                            status = "form_autofilled_awaiting_human_submit"
-                            notes = f"Autofilled {len(autofill_filled)} field(s); human submitted manually."
+                        if submitted:
+                            status = "submitted_by_human"
+                            notes = "User confirmed manual submission in shell."
+                            company.applied = True
+                            company.application_date = datetime.now().isoformat()
+                            company.notes = notes
+                            self.save_companies_to_csv()
+                        elif autofill_filled:
+                            status = "form_autofilled_not_submitted"
+                            notes = f"Autofilled {len(autofill_filled)} field(s); user did not confirm submission."
+                        else:
+                            status = "opened_apply_flow_skipped"
+                            notes = "User skipped without confirming submission."
                     if success:
-                        company.notes = notes
+                        if original_notes and not submitted:
+                            company.notes = original_notes
+                        opened_flows += 1
+                        if self.pause_each and not submitted:
+                            self._reset_browser_between_companies(driver)
 
                 self.results.append(
                     {
@@ -354,14 +455,22 @@ class JobApplicationAutomata:
                         "careers_url": company.careers_url,
                         "job_board": company.job_board,
                         "success": success,
-                        "submitted": False,
+                        "submitted": submitted,
                         "status": status,
                         "notes": notes,
                         "autofill_filled": "; ".join(autofill_filled),
                         "autofill_notes": "; ".join(autofill_notes),
                         "cover_letter_preview": cover_letter[:500],
+                        "cover_letter": cover_letter,
                     }
                 )
+                if limit is not None:
+                    if dry_run and processed >= limit:
+                        logger.info("Stopping after %s processed company.", processed)
+                        break
+                    if not dry_run and opened_flows >= limit:
+                        logger.info("Stopping after %s opened apply flow.", opened_flows)
+                        break
                 time.sleep(self.delay)
         finally:
             if driver:
@@ -437,6 +546,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", help="Dry run mode (no applications)")
     parser.add_argument("--headless", action="store_true", default=True, help="Run browser headless")
     parser.add_argument("--pause-each", action="store_true", help="Autofill each form, then pause for human review + manual submit (forces non-headless)")
+    parser.add_argument("--one", action="store_true", help="Process only one not-yet-applied company")
     parser.add_argument("--init", action="store_true", help="Initialize CSV and profile templates")
     parser.add_argument("--csv", default=str(DEFAULT_COMPANIES), help="Companies CSV file")
     parser.add_argument("--markdown", default=str(DEFAULT_TARGET_COMPANIES), help="Source markdown file")
@@ -453,7 +563,7 @@ def main() -> int:
 
     automata = JobApplicationAutomata(headless=args.headless, pause_each=args.pause_each)
     automata.load_companies_from_csv(args.csv)
-    automata.run(dry_run=args.dry_run)
+    automata.run(dry_run=args.dry_run, limit=1 if args.one else None)
     return 0
 
 
