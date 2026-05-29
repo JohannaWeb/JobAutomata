@@ -7,6 +7,7 @@ PostgreSQL-backed for data persistence
 
 import json
 import csv
+import hmac
 import os
 import subprocess
 import time
@@ -92,15 +93,17 @@ def require_local_or_token():
 
     if DASHBOARD_TOKEN:
         supplied = request.headers.get('X-Dashboard-Token')
-        url_token = request.args.get('token')
         auth = request.headers.get('Authorization', '')
         bearer = auth.removeprefix('Bearer ').strip() if auth.startswith('Bearer ') else None
         
-        if supplied == DASHBOARD_TOKEN or bearer == DASHBOARD_TOKEN or url_token == DASHBOARD_TOKEN:
+        if any(
+            token and hmac.compare_digest(token, DASHBOARD_TOKEN)
+            for token in (supplied, bearer)
+        ):
             return None
         return jsonify({'error': 'Unauthorized'}), 401
 
-    remote_addr = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
+    remote_addr = request.remote_addr or ''
     if remote_addr in LOCAL_ADDRESSES:
         return None
 
