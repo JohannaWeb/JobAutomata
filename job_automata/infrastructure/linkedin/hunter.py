@@ -146,11 +146,11 @@ class LinkedInHunter:
                 try:
                     # Extract name
                     name_elem = result.find_element(By.CLASS_NAME, 'app-aware-link')
-                    name = name_elem.get_text().strip()
+                    name = name_elem.text.strip()
 
                     # Extract title
                     title_elem = result.find_element(By.CLASS_NAME, 'sub-header-line')
-                    title = title_elem.get_text().strip()
+                    title = title_elem.text.strip()
 
                     # Extract URL
                     profile_url = name_elem.get_attribute('href')
