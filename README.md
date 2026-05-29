@@ -12,7 +12,6 @@ URL Scraping: Finds careers pages and detects job board platforms (Greenhouse, L
 
 Company Enrichment: Extracts mission statements, meta descriptions, and about page content
 
-LinkedIn Integration: Finds hiring managers and recruiters at target companies
 
 Multi-Board Support: Handles Greenhouse, Lever, Workable, and custom job boards
 
@@ -80,7 +79,7 @@ make help: Show all available commands
 
 run.py: Orchestrator
 Runs tools in sequence
-Supports modes: init, scrape, hunt, test, apply, full
+Supports modes: init, scrape, test, apply, full
 Configurable markdown input and CSV output
 
 url_scraper.py: Web Scraping and Enrichment
@@ -98,11 +97,6 @@ Supports {company_description} placeholder in templates
 Fills application forms with profile data
 Logs results to CSV
 
-linkedin_hunter.py: LinkedIn Integration
-Logs into LinkedIn
-Searches for recruiters at target companies
-Extracts contact information
-Saves to linkedin_managers.csv
 
 cover_letter_ai.py: AI Cover Letter Generation
 Calls Google Gemini Flash API
@@ -239,16 +233,6 @@ Caches results
 
 Output: companies.csv with populated URLs and descriptions.
 
-### Mode: hunt
-
-Finds hiring managers on LinkedIn (optional).
-
-```
-LINKEDIN_PASSWORD=yourpass python3 run.py --mode hunt --linkedin-email your@email.com
-```
-
-Output: linkedin_managers.csv
-
 ### Mode: test
 
 Dry run. Generates cover letters and logs without applying.
@@ -275,7 +259,7 @@ The source companies CSV is also updated with `applied=True`, `application_date`
 Runs all steps in sequence.
 
 ```
-LINKEDIN_PASSWORD=Y python3 run.py --mode full --linkedin-email X
+python3 run.py --mode full
 ```
 
 ## Cover Letter Generation
@@ -342,13 +326,6 @@ name,category,url,careers_url,job_board,description,applied
 Anthropic,Machine Learning,https://anthropic.com,...,"AI safety company...",False
 ```
 
-### linkedin_managers.csv (if using hunt mode)
-
-```
-name,title,company,url,email,department,location,found_date
-Jane Smith,Engineering Manager,Anthropic,...,jane@anthropic.com,Engineering,SF,2026-04-26T...
-```
-
 ### applications_YYYYMMDD_HHMMSS.csv
 
 ```
@@ -364,7 +341,6 @@ timestamp,company,category,url,success,notes
 ```
 tail -f job_applications.log
 tail -f url_scraper.log
-tail -f linkedin_hunter.log
 ```
 
 ### Watch Browser

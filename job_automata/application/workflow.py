@@ -8,7 +8,6 @@ import subprocess
 import sys
 import time
 import json
-import os
 import logging
 
 from job_automata.config import APPLICATIONS_DIR, DEFAULT_COMPANIES, DEFAULT_TARGET_COMPANIES
@@ -67,7 +66,7 @@ class JobAutomataOrchestrator:
         Run the full workflow
 
         Args:
-            mode: 'init', 'scrape', 'hunt', 'test', or 'apply'
+            mode: 'init', 'scrape', 'test', or 'apply'
         """
         completed = 0
         failed = 0
@@ -101,7 +100,6 @@ def build_workflow(
     mode: str = 'full',
     csv_file: str = str(DEFAULT_COMPANIES),
     markdown_file: str = str(DEFAULT_TARGET_COMPANIES),
-    linkedin_email: str = None,
 ) -> JobAutomataOrchestrator:
     """
     Build workflow based on mode
@@ -109,10 +107,9 @@ def build_workflow(
     Modes:
         - 'init': Initialize profile and CSV
         - 'scrape': Scrape URLs only
-        - 'hunt': Hunt LinkedIn managers
         - 'test': Test dry run
         - 'apply': Full auto-apply
-        - 'full': All steps (init - scrape - hunt - test - apply)
+        - 'full': All steps (init - scrape - test - apply)
     """
     o = JobAutomataOrchestrator()
 
@@ -129,20 +126,6 @@ def build_workflow(
             [sys.executable, '-m', 'job_automata.infrastructure.scraping.url_scraper', '--markdown', markdown_file, '--csv', csv_file],
             'Finds careers pages and job board platforms'
         )
-
-    if mode in ['hunt', 'full']:
-        if linkedin_email and os.getenv('LINKEDIN_PASSWORD'):
-            o.step(
-                'Hunt LinkedIn Managers',
-                [
-                    sys.executable, '-m', 'job_automata.infrastructure.linkedin.hunter',
-                    '--email', linkedin_email,
-                    '--csv', csv_file
-                ],
-                'Finds hiring managers at target companies'
-            )
-        else:
-            logger.warning("LINKEDIN_EMAIL/LINKEDIN_PASSWORD not provided. Skipping manager hunt.")
 
     if mode in ['test', 'full']:
         o.step(
@@ -169,26 +152,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Initialize everything
   python -m job_automata.application.workflow --mode init
-
-  # Scrape URLs only
   python -m job_automata.application.workflow --mode scrape
-
-  # Run dry test
   python -m job_automata.application.workflow --mode test
-
-  # Full workflow (init - scrape - hunt - test - apply)
-  LINKEDIN_PASSWORD=... python -m job_automata.application.workflow --mode hunt --linkedin-email your@email.com
-
-  # Open apply flows for supported job boards
   python -m job_automata.application.workflow --mode apply
         """
     )
 
     parser.add_argument(
         '--mode',
-        choices=['init', 'scrape', 'hunt', 'test', 'apply', 'full'],
+        choices=['init', 'scrape', 'test', 'apply', 'full'],
         default='init',
         help='Workflow mode'
     )
@@ -202,11 +175,6 @@ Examples:
         default=str(DEFAULT_TARGET_COMPANIES),
         help='Source markdown file'
     )
-    parser.add_argument(
-        '--linkedin-email',
-        help='LinkedIn email for manager hunting'
-    )
-
     args = parser.parse_args()
 
     print("""
@@ -219,7 +187,6 @@ Job Automata - Application Orchestrator
         mode=args.mode,
         csv_file=args.csv,
         markdown_file=args.markdown,
-        linkedin_email=args.linkedin_email
     )
 
     success = workflow.run_workflow(args.mode)
@@ -228,7 +195,6 @@ Job Automata - Application Orchestrator
         logger.info("All steps completed successfully!")
         logger.info(f"Check these files for results:")
         logger.info(f"  - {args.csv} (company URLs and job boards)")
-        logger.info(f"  - linkedin_managers.csv (hiring managers)")
         logger.info(f"  - {APPLICATIONS_DIR}/applications_*.csv (application results)")
         sys.exit(0)
     else:

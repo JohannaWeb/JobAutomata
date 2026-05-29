@@ -1,4 +1,4 @@
-.PHONY: help init scrape scrape-2 scrape-300 hunt dry-run test-letters apply apply-interactive clean test-scraper venv cv-ui
+.PHONY: help init scrape scrape-2 scrape-300 dry-run test-letters apply apply-interactive clean test-scraper venv cv-ui
 
 # Default target
 help:
@@ -24,7 +24,6 @@ help:
 	@echo " make cv-ui Launch legacy CV manager (http://localhost:5000)"
 	@echo ""
 	@echo "Advanced:"
-	@echo " make hunt Find LinkedIn managers (requires credentials)"
 	@echo " make full Run complete workflow (init → scrape → test → apply)"
 	@echo ""
 	@echo "Cleanup:"
@@ -92,15 +91,6 @@ scrape-2:
 scrape-300:
 	@$(MAKE) scrape COUNT=300
 
-# Hunt LinkedIn managers (requires credentials)
-hunt:
-	@if [ -z "$$LINKEDIN_EMAIL" ] || [ -z "$$LINKEDIN_PASSWORD" ]; then \
-		echo "Set LINKEDIN_EMAIL and LINKEDIN_PASSWORD in your environment. Credentials are not accepted on argv."; \
-		exit 1; \
-	fi
-	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f data/companies_300.csv ]; then SELECTED_CSV=data/companies_300.csv; else SELECTED_CSV=data/companies.csv; fi && \
-	. venv/bin/activate 2>/dev/null || true && python3 -m job_automata.application.workflow --mode hunt --linkedin-email "$$LINKEDIN_EMAIL" --csv $$SELECTED_CSV
-
 # Test dry run (no applications submitted)
 dry-run:
 	@if [ -n "$(CSV)" ]; then SELECTED_CSV="$(CSV)"; elif [ -f data/companies_300.csv ]; then SELECTED_CSV=data/companies_300.csv; else SELECTED_CSV=data/companies.csv; fi && \
@@ -151,7 +141,7 @@ clean:
 	@echo "Cleaning generated files..."
 	@rm -f data/companies.csv data/companies_*.csv
 	@rm -f var/applications/*.csv
-	@rm -f linkedin_managers.csv
+
 	@echo " Cleaned CSV files"
 
 # Clean all generated files
