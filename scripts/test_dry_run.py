@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 from auto_apply import JobApplicationAutomata
-from linkedin_hunter import LinkedInManager
 from run import build_workflow
 from url_scraper import URLScraper
 
@@ -64,21 +63,6 @@ def test_auto_apply_dry_run() -> None:
         test_csv.unlink(missing_ok=True)
 
 
-def test_linkedin_hunter_shape() -> None:
-    print("\nTEST 3: LinkedIn manager data shape")
-    manager = LinkedInManager(
-        name="Jane Smith",
-        title="Engineering Manager",
-        company="Anthropic",
-        url="https://linkedin.com/in/janesmith",
-        email="jane.smith@example.com",
-        department="Engineering",
-        location="San Francisco, CA",
-        found_date="2026-04-26T10:00:00",
-    )
-    print(manager)
-
-
 def test_orchestrator() -> None:
     print("\nTEST 4: Orchestrator structure")
     workflow = build_workflow(mode="test")
@@ -90,7 +74,6 @@ def main() -> int:
     try:
         test_url_scraper()
         test_auto_apply_dry_run()
-        test_linkedin_hunter_shape()
         test_orchestrator()
         print("\nDry-run smoke tests completed.")
         return 0
