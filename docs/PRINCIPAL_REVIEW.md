@@ -6,7 +6,8 @@
 
 ---
 
-## Credit where it's due (what got fixed since April)
+## Credit where it's due (what got 
+fixed since April)
 
 I want to be fair before I'm brutal, because a lot of the April report is now stale and you should stop worrying about those items:
 
@@ -24,22 +25,25 @@ So the bones are better. The problems now are sharper and more specific. Several
 
 ## P0 — Stop and fix today
 
-### P0.1 The leaked Gemini key is STILL in git history
-April flagged this. The working tree was scrubbed; **history was not.** It's right here:
+### P0.1 Leaked Gemini key in git history — PURGED 2026-05-29
+A Gemini API key was committed in plaintext to `RAILWAY_DEPLOYMENT.md`. The working
+tree was scrubbed back in April, but the literal value survived in three reachable
+commits (in the shared ancestry of both `master` and the maintainability branch).
+Ironically, the "delete the old key" cleanup instructions re-pasted the key, which is
+how it kept getting reintroduced.
 
-```
-e49db9a:RAILWAY_DEPLOYMENT.md:  Delete the old key: `AIzaSy_REDACTED_FROM_HISTORY`
-e4a380c:RAILWAY_DEPLOYMENT.md:  Delete the old key: `AIzaSy_REDACTED_FROM_HISTORY`
-```
+**Remediation performed 2026-05-29** (full log in `docs/SECURITY_INCIDENT_2026-05-29.md`):
+the key string was purged from all history with a `--replace-text` rewrite across every
+ref, the value no longer appears in any blob, and the rewritten branches were prepared
+for force-push.
 
-Anyone who clones the repo gets the key with `git log -p`. "We deleted it from the file" is not remediation when the value lives in two reachable commits.
+**Still required — do not skip:** rotate/revoke the key in Google AI Studio. History
+rewriting does not invalidate a credential. The key was public for ~a month and must be
+treated as compromised regardless of the scrub. GitHub may also retain the old commits
+in cached views and any forks until those are addressed.
 
-**Fix (today, in order):**
-1. Rotate the key in Google AI Studio. Assume it is compromised — it has been public in history for a month.
-2. `git filter-repo --replace-text <(echo 'AIzaSy_REDACTED_FROM_HISTORY==>REDACTED')` (or BFG).
-3. Force-push, and have every collaborator re-clone. **Confirm with whoever owns the remote before force-pushing** — it rewrites history for everyone.
-
-A leaked-but-rotated key is a non-event. A leaked-and-still-valid key is a billing/abuse incident waiting to happen.
+A leaked-but-rotated key is a non-event. A leaked-and-still-valid key is a billing/abuse
+incident waiting to happen — rotation is the only thing that actually closes it.
 
 ### P0.2 Dashboard auth bypass via `X-Forwarded-For`
 `app.py:103`:
